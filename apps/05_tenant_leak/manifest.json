@@ -1,0 +1,1 @@
+{"name":"05_tenant_leak","membership":"memberships","tables":{"memberships":{"legitOps":["read"]}},"expect":{"verdict":"unsafe","classes":["cross_tenant_read","cross_user_write","tenant_self_join"]}}

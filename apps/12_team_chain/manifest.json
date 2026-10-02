@@ -1,0 +1,1 @@
+{"name":"12_team_chain","expect":{"verdict":"unsafe","classes":["cross_user_read","cross_user_write"]}}

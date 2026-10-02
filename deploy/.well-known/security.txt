@@ -1,0 +1,8 @@
+# Guard Score / Verified Changes — security contact (RFC 9116)
+# Served at https://[WEBSITE DOMAIN]/.well-known/security.txt
+Contact: mailto:[SECURITY EMAIL]
+Contact: https://github.com/Tunceroo/guardscore/security/advisories/new
+Expires: 2027-09-28T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://[WEBSITE DOMAIN]/.well-known/security.txt
+Policy: https://github.com/Tunceroo/guardscore/blob/main/SECURITY.md

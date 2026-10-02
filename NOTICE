@@ -1,0 +1,29 @@
+Verified Changes (Guard Score)
+Copyright 2026 The Verified Changes Authors
+
+This product includes software developed by The Verified Changes Authors.
+Licensed under the Apache License, Version 2.0 (see the LICENSE file).
+
+--------------------------------------------------------------------------------
+Trademarks
+--------------------------------------------------------------------------------
+"Guard Score" and "Verified Changes" are trademarks of the project's owner.
+The Apache License, Version 2.0 grants rights to the SOURCE CODE only; it does
+NOT grant any right to use these names, logos, or the Guard Score badge to imply
+endorsement, affiliation, or origin. In particular:
+
+  - You may state that your project "uses Verified Changes" or "is scored by
+    Guard Score" in factual, descriptive terms.
+  - You may NOT distribute a fork, a hosted service, or a derivative product
+    under the names "Guard Score" or "Verified Changes", nor use the Guard Score
+    badge to represent a score not produced by this software.
+
+If you distribute a modified version, give it a different name.
+
+--------------------------------------------------------------------------------
+Notes
+--------------------------------------------------------------------------------
+- Replace "The Verified Changes Authors" above with your legal name or entity
+  before publishing, if you want the copyright asserted under that name.
+- Third-party dependencies are distributed under their own licenses; see each
+  package in node_modules and the project's dependency manifest.

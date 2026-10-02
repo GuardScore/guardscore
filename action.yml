@@ -1,0 +1,90 @@
+name: Guard Score
+description: Attack a private copy of your app's backend on every push, prove leaks, confirm real users still work, and suggest fixes proven on the copy. Auto-detects Supabase, Postgres, and Firebase, and scans for leaked secrets.
+branding: { icon: shield, color: green }
+inputs:
+  project-dir:
+    description: Folder that contains your backend (supabase/migrations, firestore.rules, a Postgres schema, etc.). Auto-detected.
+    default: .
+  public-tables:
+    description: 'Newline-separated "table: why it is public" declarations (merged with verified-changes.json)'
+    default: ''
+  shared-tables:
+    description: 'Newline-separated "table: why every signed-in user can read it" declarations'
+    default: ''
+  fail-on:
+    description: 'Fail the job on: unsafe (leaks only) or any (anything but SAFE)'
+    default: any
+  comment:
+    description: Post the result as a pull-request comment (needs pull-requests write permission)
+    default: 'true'
+  sarif:
+    description: Write verified-changes.sarif for github/codeql-action/upload-sarif
+    default: 'true'
+  fix-pr:
+    description: When the check fails, open a pull request with the proven fixes as a new migration (needs contents and pull-requests write permission)
+    default: 'false'
+outputs:
+  verdict:
+    description: safe, unsafe, breaks_app, incomplete or untested
+    value: ${{ steps.check.outputs.verdict }}
+  score:
+    description: The 0-100 Guard Score (empty when the stack could not be tested)
+    value: ${{ steps.check.outputs.score }}
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with: { node-version: 22 }
+    - name: Install
+      shell: bash
+      run: npm ci --omit=dev --prefix "$GITHUB_ACTION_PATH" --silent
+    - name: Check
+      id: check
+      shell: bash
+      env:
+        VC_PUBLIC: ${{ inputs.public-tables }}
+        VC_SHARED: ${{ inputs.shared-tables }}
+      run: |
+        cd "${{ inputs.project-dir }}"
+        args=()
+        while IFS= read -r l; do [ -n "$l" ] && args+=(--public "$l"); done <<< "$VC_PUBLIC"
+        while IFS= read -r l; do [ -n "$l" ] && args+=(--shared "$l"); done <<< "$VC_SHARED"
+        set +e
+        node "$GITHUB_ACTION_PATH/src/cli.js" check . --no-log --out-dir "$RUNNER_TEMP/vc" "${args[@]}"
+        code=$?
+        set -e
+        [ "$code" = 2 ] && exit 2
+        [ "${{ inputs.sarif }}" = true ] && cp "$RUNNER_TEMP/vc/result.sarif" "$GITHUB_WORKSPACE/verified-changes.sarif"
+        cat "$RUNNER_TEMP/vc/result.md" >> "$GITHUB_STEP_SUMMARY"
+        echo "verdict=$(node -e "console.log(require(process.argv[1]).verdict)" "$RUNNER_TEMP/vc/result.json")" >> "$GITHUB_OUTPUT"
+        echo "score=$(node -e "const s=require(process.argv[1]).guardScore; console.log(s==null?'':s)" "$RUNNER_TEMP/vc/result.json")" >> "$GITHUB_OUTPUT"
+    - name: Comment on the pull request
+      if: inputs.comment == 'true' && github.event_name == 'pull_request'
+      shell: bash
+      env: { GH_TOKEN: '${{ github.token }}' }
+      run: gh pr comment "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --body-file "$RUNNER_TEMP/vc/result.md" --edit-last || gh pr comment "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --body-file "$RUNNER_TEMP/vc/result.md" || true
+    - name: Open a pull request with the proven fixes
+      if: inputs.fix-pr == 'true' && steps.check.outputs.verdict != 'safe'
+      shell: bash
+      env: { GH_TOKEN: '${{ github.token }}' }
+      run: |
+        cd "${{ inputs.project-dir }}"
+        base="${{ github.head_ref || github.ref_name }}"
+        branch="verified-changes/fix-${{ github.run_id }}"
+        git checkout -b "$branch"
+        node "$GITHUB_ACTION_PATH/src/cli.js" fix . --no-log | tee "$RUNNER_TEMP/vc-fix.txt" || true
+        if git status --porcelain supabase/migrations | grep -q .; then
+          git config user.name "verified-changes[bot]"; git config user.email "verified-changes@users.noreply.github.com"
+          git add supabase/migrations && git commit -q -m "Proven security fixes from Verified Changes"
+          git push -q origin "$branch"
+          gh pr create --base "$base" --head "$branch" --title "Security fixes proven by Verified Changes" --body-file "$RUNNER_TEMP/vc/result.md" || true
+        else
+          echo "No proven database fixes to open a pull request with."
+        fi
+    - name: Pass or fail
+      shell: bash
+      run: |
+        v="${{ steps.check.outputs.verdict }}"
+        if [ "$v" = safe ]; then exit 0; fi
+        if [ "${{ inputs.fail-on }}" = unsafe ] && [ "$v" != unsafe ]; then echo "::warning::verified-changes: $v"; exit 0; fi
+        echo "::error::verified-changes: $v (see the job summary for proof and proven fixes)"; exit 1

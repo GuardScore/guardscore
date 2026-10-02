@@ -1,0 +1,395 @@
+{
+  "specs": [
+    {
+      "id": "orders.anon.read",
+      "table": "orders",
+      "cls": "anon_read",
+      "kind": "attack",
+      "actor": {
+        "role": "anon"
+      },
+      "sql": "select count(*) as n from public.\"orders\"",
+      "judge": "count"
+    },
+    {
+      "id": "orders.anon.update",
+      "table": "orders",
+      "cls": "anon_write",
+      "kind": "attack",
+      "actor": {
+        "role": "anon"
+      },
+      "sql": "update public.\"orders\" set \"id\" = \"id\" where true",
+      "judge": "affected"
+    },
+    {
+      "id": "orders.anon.delete",
+      "table": "orders",
+      "cls": "anon_write",
+      "kind": "attack",
+      "actor": {
+        "role": "anon"
+      },
+      "sql": "delete from public.\"orders\" where true",
+      "judge": "affected"
+    },
+    {
+      "id": "orders.cross.read",
+      "table": "orders",
+      "cls": "cross_user_read",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "select count(*) as n from public.\"orders\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "count"
+    },
+    {
+      "id": "orders.forged_meta.read",
+      "table": "orders",
+      "cls": "trusts_user_metadata",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b",
+        "userMeta": {
+          "role": "admin",
+          "is_admin": true,
+          "admin": true
+        }
+      },
+      "sql": "select count(*) as n from public.\"orders\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "count",
+      "dependsOn": {
+        "id": "orders.cross.read",
+        "status": "blocked"
+      }
+    },
+    {
+      "id": "orders.cross.update",
+      "table": "orders",
+      "cls": "cross_user_write",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "update public.\"orders\" set \"user_id\" = \"user_id\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "affected"
+    },
+    {
+      "id": "orders.cross.delete",
+      "table": "orders",
+      "cls": "cross_user_write",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "delete from public.\"orders\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "affected"
+    },
+    {
+      "id": "orders.cross.blind_update",
+      "table": "orders",
+      "cls": "cross_user_write",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "update public.\"orders\" set \"amount_cents\" = (jsonb_populate_record(null::public.\"orders\", $1::jsonb)).\"amount_cents\"",
+      "params": [
+        "{\"amount_cents\":1999}"
+      ],
+      "judge": "affected",
+      "allowed": 1
+    },
+    {
+      "id": "orders.cross.blind_delete",
+      "table": "orders",
+      "cls": "cross_user_write",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "delete from public.\"orders\"",
+      "judge": "affected",
+      "allowed": 1
+    },
+    {
+      "id": "orders.cross.insert_as_other",
+      "table": "orders",
+      "cls": "impersonated_insert",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "insert into public.\"orders\" (\"user_id\", \"amount_cents\") select \"user_id\", \"amount_cents\" from jsonb_populate_record(null::public.\"orders\", $1::jsonb)",
+      "params": [
+        "{\"user_id\":\"00000000-0000-4000-8000-00000000000a\",\"amount_cents\":1999}"
+      ],
+      "judge": "affected"
+    },
+    {
+      "id": "orders.anon.insert",
+      "table": "orders",
+      "cls": "anon_write",
+      "kind": "attack",
+      "actor": {
+        "role": "anon"
+      },
+      "sql": "insert into public.\"orders\" (\"user_id\", \"amount_cents\") select \"user_id\", \"amount_cents\" from jsonb_populate_record(null::public.\"orders\", $1::jsonb)",
+      "params": [
+        "{\"user_id\":\"00000000-0000-4000-8000-00000000000a\",\"amount_cents\":1999}"
+      ],
+      "judge": "affected"
+    },
+    {
+      "id": "orders.legit.read_own",
+      "table": "orders",
+      "cls": "legit",
+      "kind": "legit",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000a"
+      },
+      "sql": "select count(*) as n from public.\"orders\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "count"
+    },
+    {
+      "id": "orders.legit.insert_own",
+      "table": "orders",
+      "cls": "legit",
+      "kind": "legit",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000a"
+      },
+      "sql": "insert into public.\"orders\" (\"user_id\", \"amount_cents\") select \"user_id\", \"amount_cents\" from jsonb_populate_record(null::public.\"orders\", $1::jsonb)",
+      "params": [
+        "{\"user_id\":\"00000000-0000-4000-8000-00000000000a\",\"amount_cents\":1999}"
+      ],
+      "judge": "affected"
+    },
+    {
+      "id": "orders.legit.update_own",
+      "table": "orders",
+      "cls": "legit",
+      "kind": "legit",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000a"
+      },
+      "sql": "update public.\"orders\" set \"user_id\" = \"user_id\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "affected"
+    }
+  ],
+  "local": [
+    {
+      "id": "orders.anon.read",
+      "table": "orders",
+      "class": "anon_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "select count(*) as n from public.\"orders\"",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "orders.anon.update",
+      "table": "orders",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "update public.\"orders\" set \"id\" = \"id\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "orders.anon.delete",
+      "table": "orders",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "delete from public.\"orders\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "orders.cross.read",
+      "table": "orders",
+      "class": "cross_user_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "select count(*) as n from public.\"orders\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "orders.forged_meta.read",
+      "table": "orders",
+      "class": "trusts_user_metadata",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B with self-edited metadata",
+        "sql": "select count(*) as n from public.\"orders\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 0
+        }
+      },
+      "dependsOn": {
+        "id": "orders.cross.read",
+        "status": "blocked"
+      }
+    },
+    {
+      "id": "orders.cross.update",
+      "table": "orders",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"orders\" set \"user_id\" = \"user_id\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "orders.cross.delete",
+      "table": "orders",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"orders\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "orders.cross.blind_update",
+      "table": "orders",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"orders\" set \"amount_cents\" = (jsonb_populate_record(null::public.\"orders\", $1::jsonb)).\"amount_cents\"",
+        "observed": {
+          "rows_affected": 1,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "orders.cross.blind_delete",
+      "table": "orders",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"orders\"",
+        "observed": {
+          "rows_affected": 0,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "orders.cross.insert_as_other",
+      "table": "orders",
+      "class": "impersonated_insert",
+      "kind": "attack",
+      "status": "leaked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "insert into public.\"orders\" (\"user_id\", \"amount_cents\") select \"user_id\", \"amount_cents\" from jsonb_populate_record(null::public.\"orders\", $1::jsonb)",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    },
+    {
+      "id": "orders.anon.insert",
+      "table": "orders",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "insert into public.\"orders\" (\"user_id\", \"amount_cents\") select \"user_id\", \"amount_cents\" from jsonb_populate_record(null::public.\"orders\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"orders\""
+        }
+      }
+    },
+    {
+      "id": "orders.legit.read_own",
+      "table": "orders",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "select count(*) as n from public.\"orders\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 1
+        }
+      }
+    },
+    {
+      "id": "orders.legit.insert_own",
+      "table": "orders",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "insert into public.\"orders\" (\"user_id\", \"amount_cents\") select \"user_id\", \"amount_cents\" from jsonb_populate_record(null::public.\"orders\", $1::jsonb)",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    },
+    {
+      "id": "orders.legit.update_own",
+      "table": "orders",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "update public.\"orders\" set \"user_id\" = \"user_id\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    }
+  ]
+}

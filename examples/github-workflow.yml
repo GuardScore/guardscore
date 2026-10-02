@@ -1,0 +1,22 @@
+# .github/workflows/verified-changes.yml
+name: Database security
+on:
+  pull_request:
+    paths: ['supabase/migrations/**', 'src/**', 'app/**', 'verified-changes.json']
+permissions:
+  contents: read            # use write if you turn on fix-pr
+  pull-requests: write      # for the PR comment (and fix-pr)
+  security-events: write    # for SARIF upload
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: vc
+        uses: YOUR-ORG/verified-changes@v0.4   # or a path to a checked-out copy
+        with:
+          public-tables: |
+            products: the catalog shoppers browse before signing in
+      - if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with: { sarif_file: verified-changes.sarif }

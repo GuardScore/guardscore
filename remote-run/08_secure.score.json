@@ -1,0 +1,739 @@
+{
+  "remote": [
+    {
+      "id": "memberships.anon.read",
+      "table": "memberships",
+      "class": "anon_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "select count(*) as n from public.\"memberships\"",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "memberships.anon.update",
+      "table": "memberships",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "update public.\"memberships\" set \"id\" = \"id\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "memberships.anon.delete",
+      "table": "memberships",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "delete from public.\"memberships\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "memberships.cross.read",
+      "table": "memberships",
+      "class": "cross_user_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "select count(*) as n from public.\"memberships\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "memberships.forged_meta.read",
+      "table": "memberships",
+      "class": "trusts_user_metadata",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B with self-edited metadata",
+        "sql": "select count(*) as n from public.\"memberships\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 0
+        }
+      },
+      "dependsOn": {
+        "id": "memberships.cross.read",
+        "status": "blocked"
+      }
+    },
+    {
+      "id": "memberships.cross.update",
+      "table": "memberships",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"memberships\" set \"user_id\" = \"user_id\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "memberships.cross.delete",
+      "table": "memberships",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"memberships\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "memberships.cross.blind_delete",
+      "table": "memberships",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"memberships\"",
+        "observed": {
+          "rows_affected": 0,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "memberships.cross.insert_as_other",
+      "table": "memberships",
+      "class": "impersonated_insert",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "insert into public.\"memberships\" (\"org_id\", \"user_id\") select \"org_id\", \"user_id\" from jsonb_populate_record(null::public.\"memberships\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"memberships\""
+        }
+      }
+    },
+    {
+      "id": "memberships.anon.insert",
+      "table": "memberships",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "insert into public.\"memberships\" (\"org_id\", \"user_id\") select \"org_id\", \"user_id\" from jsonb_populate_record(null::public.\"memberships\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"memberships\""
+        }
+      }
+    },
+    {
+      "id": "memberships.self_join_other_tenant",
+      "table": "memberships",
+      "class": "tenant_self_join",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "insert into public.\"memberships\" (\"org_id\", \"user_id\") select \"org_id\", \"user_id\" from jsonb_populate_record(null::public.\"memberships\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"memberships\""
+        }
+      }
+    },
+    {
+      "id": "memberships.legit.read_own",
+      "table": "memberships",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "select count(*) as n from public.\"memberships\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 1
+        }
+      }
+    },
+    {
+      "id": "notes.anon.read",
+      "table": "notes",
+      "class": "anon_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "select count(*) as n from public.\"notes\"",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "notes.anon.update",
+      "table": "notes",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "update public.\"notes\" set \"id\" = \"id\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "notes.anon.delete",
+      "table": "notes",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "delete from public.\"notes\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "notes.cross.read",
+      "table": "notes",
+      "class": "cross_user_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "select count(*) as n from public.\"notes\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "notes.forged_meta.read",
+      "table": "notes",
+      "class": "trusts_user_metadata",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B with self-edited metadata",
+        "sql": "select count(*) as n from public.\"notes\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 0
+        }
+      },
+      "dependsOn": {
+        "id": "notes.cross.read",
+        "status": "blocked"
+      }
+    },
+    {
+      "id": "notes.cross.update",
+      "table": "notes",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"notes\" set \"user_id\" = \"user_id\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "notes.cross.delete",
+      "table": "notes",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"notes\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "notes.cross.blind_update",
+      "table": "notes",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"notes\" set \"body\" = (jsonb_populate_record(null::public.\"notes\", $1::jsonb)).\"body\"",
+        "observed": {
+          "rows_affected": 1,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "notes.cross.blind_delete",
+      "table": "notes",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"notes\"",
+        "observed": {
+          "rows_affected": 1,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "notes.cross.insert_as_other",
+      "table": "notes",
+      "class": "impersonated_insert",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "insert into public.\"notes\" (\"body\", \"user_id\") select \"body\", \"user_id\" from jsonb_populate_record(null::public.\"notes\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"notes\""
+        }
+      }
+    },
+    {
+      "id": "notes.anon.insert",
+      "table": "notes",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "insert into public.\"notes\" (\"body\", \"user_id\") select \"body\", \"user_id\" from jsonb_populate_record(null::public.\"notes\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"notes\""
+        }
+      }
+    },
+    {
+      "id": "notes.legit.read_own",
+      "table": "notes",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "select count(*) as n from public.\"notes\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 1
+        }
+      }
+    },
+    {
+      "id": "notes.legit.insert_own",
+      "table": "notes",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "insert into public.\"notes\" (\"body\", \"user_id\") select \"body\", \"user_id\" from jsonb_populate_record(null::public.\"notes\", $1::jsonb)",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    },
+    {
+      "id": "notes.legit.update_own",
+      "table": "notes",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "update public.\"notes\" set \"user_id\" = \"user_id\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    },
+    {
+      "id": "notes.legit.delete_own",
+      "table": "notes",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "delete from public.\"notes\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    },
+    {
+      "id": "orgs.anon.read",
+      "table": "orgs",
+      "class": "anon_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "select count(*) as n from public.\"orgs\"",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "orgs.anon.update",
+      "table": "orgs",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "update public.\"orgs\" set \"id\" = \"id\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "orgs.anon.delete",
+      "table": "orgs",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "delete from public.\"orgs\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "projects.anon.read",
+      "table": "projects",
+      "class": "anon_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "select count(*) as n from public.\"projects\"",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "projects.anon.update",
+      "table": "projects",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "update public.\"projects\" set \"id\" = \"id\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "projects.anon.delete",
+      "table": "projects",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "delete from public.\"projects\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "projects.cross.read",
+      "table": "projects",
+      "class": "cross_tenant_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "select count(*) as n from public.\"projects\" where \"org_id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "projects.forged_meta.read",
+      "table": "projects",
+      "class": "trusts_user_metadata",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B with self-edited metadata",
+        "sql": "select count(*) as n from public.\"projects\" where \"org_id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_visible": 0
+        }
+      },
+      "dependsOn": {
+        "id": "projects.cross.read",
+        "status": "blocked"
+      }
+    },
+    {
+      "id": "projects.cross.update",
+      "table": "projects",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"projects\" set \"org_id\" = \"org_id\" where \"org_id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "projects.cross.delete",
+      "table": "projects",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"projects\" where \"org_id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "projects.cross.blind_update",
+      "table": "projects",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"projects\" set \"name\" = (jsonb_populate_record(null::public.\"projects\", $1::jsonb)).\"name\"",
+        "observed": {
+          "rows_affected": 1,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "projects.cross.blind_delete",
+      "table": "projects",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"projects\"",
+        "observed": {
+          "rows_affected": 1,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "projects.cross.insert_as_other",
+      "table": "projects",
+      "class": "impersonated_insert",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "insert into public.\"projects\" (\"name\", \"org_id\") select \"name\", \"org_id\" from jsonb_populate_record(null::public.\"projects\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"projects\""
+        }
+      }
+    },
+    {
+      "id": "projects.anon.insert",
+      "table": "projects",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "insert into public.\"projects\" (\"name\", \"org_id\") select \"name\", \"org_id\" from jsonb_populate_record(null::public.\"projects\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"projects\""
+        }
+      }
+    },
+    {
+      "id": "projects.legit.read_own",
+      "table": "projects",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "select count(*) as n from public.\"projects\" where \"org_id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_visible": 1
+        }
+      }
+    },
+    {
+      "id": "projects.legit.insert_own",
+      "table": "projects",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "insert into public.\"projects\" (\"name\", \"org_id\") select \"name\", \"org_id\" from jsonb_populate_record(null::public.\"projects\", $1::jsonb)",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    },
+    {
+      "id": "projects.legit.update_own",
+      "table": "projects",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "update public.\"projects\" set \"org_id\" = \"org_id\" where \"org_id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    },
+    {
+      "id": "storage.anon.read",
+      "table": "storage.objects",
+      "class": "storage_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "select count(*) as n from storage.objects where owner = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "storage.cross.read",
+      "table": "storage.objects",
+      "class": "storage_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "select count(*) as n from storage.objects where owner = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "storage.cross.delete",
+      "table": "storage.objects",
+      "class": "storage_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from storage.objects where owner = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "storage.cross.blind_delete",
+      "table": "storage.objects",
+      "class": "storage_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from storage.objects",
+        "observed": {
+          "rows_affected": 1,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "storage.legit.read_own",
+      "table": "storage.objects",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "select count(*) as n from storage.objects where owner = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 1
+        }
+      }
+    }
+  ],
+  "summary": {
+    "verdict": "safe",
+    "guardScore": 100,
+    "attacks": {
+      "run": 40,
+      "blocked": 40,
+      "leaked": 0
+    },
+    "legit": {
+      "run": 9,
+      "ok": 9,
+      "broken": 0
+    },
+    "inconclusive": 0
+  },
+  "localSummary": {
+    "verdict": "safe",
+    "guardScore": 100,
+    "attacks": {
+      "run": 40,
+      "blocked": 40,
+      "leaked": 0
+    },
+    "legit": {
+      "run": 9,
+      "ok": 9,
+      "broken": 0
+    },
+    "inconclusive": 0
+  },
+  "diffs": []
+}

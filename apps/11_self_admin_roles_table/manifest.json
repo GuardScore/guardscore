@@ -1,0 +1,1 @@
+{"name":"11_self_admin_roles_table","tables":{"invoices":{"legitOps":["read"]}},"expect":{"verdict":"unsafe","classes":["self_grant_admin"]}}

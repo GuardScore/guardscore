@@ -1,0 +1,12 @@
+{
+  "id": "habits",
+  "kind": "single",
+  "steps": [
+    "habit tracker app. users create habits and check them off each day, show their streaks"
+  ],
+  "manifest": {
+    "sharedTables": [
+      "^(user_)?profiles?$"
+    ]
+  }
+}

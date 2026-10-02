@@ -1,0 +1,1 @@
+[{"n":0,"id":"storage.anon.read","ok":true},{"n":1,"id":"storage.cross.read","ok":true},{"n":0,"id":"storage.cross.delete","ok":true},{"n":1,"id":"storage.cross.blind_delete","ok":true},{"n":1,"id":"storage.legit.read_own","ok":true}]

@@ -1,0 +1,1 @@
+{"name":"10_self_admin_profile","expect":{"verdict":"unsafe","classes":["self_grant_admin"]}}

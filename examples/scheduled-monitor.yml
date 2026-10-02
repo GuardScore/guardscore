@@ -1,0 +1,22 @@
+# Runtime guard: re-check the deployed database on a schedule and fail (alerting
+# whoever watches the run) if security drifted since the last snapshot.
+# Commit .verified-changes/snapshot.json after the first successful run.
+name: verified-changes monitor
+on:
+  schedule: [{ cron: '0 */6 * * *' }]   # every 6 hours
+  workflow_dispatch:
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      # Check the live database structure (never its rows) and compare to the
+      # committed snapshot; a high-severity drift fails the job.
+      - run: npx --yes verified-changes check . --live "$SUPABASE_DB_URL" --format html --out guard.html
+        env: { SUPABASE_DB_URL: '${{ secrets.SUPABASE_DB_URL }}' }
+      - run: npx --yes verified-changes diff .        # exits non-zero on high-severity drift
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: guard-dashboard, path: guard.html }

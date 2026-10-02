@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Add Guard Score to GitHub · No terminal</title>
+<meta name="description" content="Add Guard Score to any repo without touching a terminal. It runs in your own GitHub Actions, attacks a private copy of your backend on every change, and posts the score. Your code never leaves your infrastructure.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{color-scheme:light;--paper:#fbfbfc;--panel:#fff;--panel-2:#f4f5f7;--ink:#16171b;--ink-2:#3a3e47;--muted:#71767f;--line:#e6e8ec;--accent:#3346c8;--accent-ink:#fff;--ok:#1f9254;--sans:'Hanken Grotesk',system-ui,-apple-system,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace}
+  @media (prefers-color-scheme:dark){:root{--paper:#0a0b0e;--panel:#121419;--panel-2:#171a21;--ink:#edeef2;--ink-2:#c2c6cf;--muted:#8a909b;--line:#20232a;--accent:#8b98f5;--accent-ink:#0a0b0e}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:780px;margin:0 auto;padding:32px 24px 96px}
+  a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+  .top{display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:-.02em;margin-bottom:34px;color:var(--ink)}
+  .top svg{display:block}
+  h1{font-size:32px;font-weight:800;letter-spacing:-.025em;margin:0 0 10px;line-height:1.12}
+  .lede{color:var(--ink-2);font-size:17px;margin:0 0 28px;max-width:60ch}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 22px 24px;margin:22px 0}
+  .card h2{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 14px}
+  label{display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin:0 0 6px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .row > div{flex:1;min-width:200px}
+  input{width:100%;font-family:var(--mono);font-size:15px;padding:11px 13px;border:1px solid var(--line);border-radius:9px;background:var(--panel-2);color:var(--ink)}
+  input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:6px}
+  .go{display:inline-flex;align-items:center;gap:9px;margin-top:18px;background:var(--accent);color:var(--accent-ink);font-family:var(--sans);font-weight:700;font-size:15.5px;border:0;border-radius:10px;padding:13px 20px;cursor:pointer;transition:transform .06s ease,opacity .15s}
+  .go:hover{opacity:.92}.go:active{transform:translateY(1px)}
+  .go:disabled{opacity:.45;cursor:not-allowed}
+  .go svg{display:block}
+  .steps{counter-reset:s;margin:6px 0 0;padding:0;list-style:none}
+  .steps li{counter-increment:s;position:relative;padding:0 0 16px 42px;color:var(--ink-2)}
+  .steps li:last-child{padding-bottom:0}
+  .steps li::before{content:counter(s);position:absolute;left:0;top:-1px;width:27px;height:27px;border-radius:50%;background:var(--panel-2);border:1px solid var(--line);color:var(--ink);font-weight:700;font-size:14px;font-family:var(--mono);display:flex;align-items:center;justify-content:center}
+  .steps b{color:var(--ink)}
+  .note{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;color:var(--ink-2);font-size:14px;margin:22px 0}
+  .note b{color:var(--ink)}
+  .codehead{display:flex;align-items:center;justify-content:space-between;margin:0 0 8px}
+  .codehead .fn{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+  .copy{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--accent);background:transparent;border:1px solid var(--line);border-radius:7px;padding:5px 11px;cursor:pointer}
+  .copy:hover{background:var(--panel-2)}
+  pre{margin:0;background:#0d0f14;border:1px solid var(--line);border-radius:10px;padding:16px;overflow:auto;font-family:var(--mono);font-size:12.5px;line-height:1.55;color:#d7dbe6}
+  @media (prefers-color-scheme:light){pre{background:#0d0f14;color:#d7dbe6}}
+  .cmt{color:#6b7280}
+  .flash{display:inline-block;margin-left:10px;color:var(--ok);font-weight:600;font-size:13px;opacity:0;transition:opacity .2s}
+  .flash.on{opacity:1}
+  h3{font-size:18px;font-weight:700;letter-spacing:-.01em;margin:34px 0 6px}
+  p{margin:10px 0}
+  footer{border-top:1px solid var(--line);margin-top:46px;padding-top:18px;color:var(--muted);font-size:13.5px;display:flex;gap:20px;flex-wrap:wrap}
+  .err{color:#d64550;font-size:13px;font-weight:600;margin-top:8px;min-height:1px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="top" href="/"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 1.5 3 4.2v5.1c0 4 2.9 7.2 7 8.7 4.1-1.5 7-4.7 7-8.7V4.2L10 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="m7.2 9.9 2 2 3.6-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Guard Score</a>
+
+  <h1>Add Guard Score to your repo — no terminal</h1>
+  <p class="lede">Guard Score runs inside your own GitHub Actions. On every change it builds a private copy of your backend, attacks it as a stranger and as another logged-in user, proves any leak, and posts a 0–100 score right on your pull request. You never open a terminal, and your code never leaves your infrastructure.</p>
+
+  <div class="card">
+    <h2>Connect a repository</h2>
+    <div class="row">
+      <div>
+        <label for="repo">Your repo</label>
+        <input id="repo" type="text" placeholder="your-username/your-app" autocomplete="off" spellcheck="false">
+        <div class="hint">Paste the GitHub URL or type <code>owner/repo</code>.</div>
+      </div>
+      <div style="flex:0 0 150px">
+        <label for="branch">Branch</label>
+        <input id="branch" type="text" value="main" autocomplete="off" spellcheck="false">
+        <div class="hint">Usually <code>main</code>.</div>
+      </div>
+    </div>
+    <div class="err" id="err"></div>
+    <button class="go" id="go" disabled>
+      <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      Add Guard Score to this repo
+    </button>
+    <div class="hint" style="margin-top:12px">This copies the workflow to your clipboard and opens GitHub's file editor with the path already filled in. Then paste and commit — that's it.</div>
+  </div>
+
+  <h3>What happens when you click</h3>
+  <ol class="steps">
+    <li><b>The workflow is copied to your clipboard</b> and GitHub opens a new-file editor in your repo, pre-set to <code>.github/workflows/guardscore.yml</code>.</li>
+    <li><b>Paste</b> (⌘V / Ctrl-V) into the editor, then click <b>Commit changes</b>. No terminal, no local setup.</li>
+    <li><b>Done.</b> GitHub runs Guard Score on every push and pull request from now on, and posts the score with proof. Add the badge to your README to show it off.</li>
+  </ol>
+
+  <div class="note">
+    <b>Where does the attack run?</b> Entirely inside your own GitHub Actions runner — GitHub's ephemeral CI, in your repo's context. Your source, schema, and secrets are never sent to Guard Score's servers. It's the same engine as the CLI, just triggered by GitHub instead of your keyboard.
+  </div>
+
+  <h3>Prefer to do it by hand?</h3>
+  <p>Create a file named <code>.github/workflows/guardscore.yml</code> in your repo and paste this in:</p>
+  <div class="codehead">
+    <span class="fn">.github/workflows/guardscore.yml</span>
+    <button class="copy" id="copy2">Copy<span class="flash" id="flash2">✓ copied</span></button>
+  </div>
+  <pre id="yaml"></pre>
+
+  <footer>
+    <a href="/">← Guard Score</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+    <a href="/.well-known/security.txt">Security</a>
+  </footer>
+</div>
+
+<script>
+// The workflow that gets added to the user's repo. Keep in sync with
+// examples/guardscore.yml in the Guard Score repo.
+const WORKFLOW = `# Guard Score — attacks a private copy of your app's backend on every change,
+# proves any data leak, confirms your real users still work, and posts a score.
+# Nothing leaves your infrastructure: this runs inside your own GitHub Actions runner.
+
+name: Guard Score
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  guard-score:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Guard Score
+        id: guard
+        uses: GuardScore/guardscore@v1
+        with:
+          project-dir: .        # auto-detects Supabase, Postgres, or Firebase
+          fail-on: unsafe       # fail the check on a proven data leak
+          comment: true         # post the score + proof on your pull requests
+
+      - name: Upload results to the Security tab
+        if: always() && hashFiles('verified-changes.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: verified-changes.sarif
+`;
+
+// Render the YAML block with a light comment colour.
+const yamlEl = document.getElementById('yaml');
+yamlEl.innerHTML = WORKFLOW.split('\n').map(l =>
+  l.trimStart().startsWith('#')
+    ? '<span class="cmt">' + l.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])) + '</span>'
+    : l.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))
+).join('\n');
+
+const repoEl = document.getElementById('repo');
+const branchEl = document.getElementById('branch');
+const goEl = document.getElementById('go');
+const errEl = document.getElementById('err');
+
+// Accept "owner/repo", a full URL, or with trailing .git — return "owner/repo" or null.
+function parseRepo(v){
+  v = (v||'').trim();
+  if(!v) return null;
+  v = v.replace(/^https?:\/\/(www\.)?github\.com\//i, '').replace(/\.git$/i,'').replace(/\/+$/,'');
+  const m = v.match(/^([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)/);
+  return m ? m[1] + '/' + m[2] : null;
+}
+function refresh(){
+  const ok = !!parseRepo(repoEl.value);
+  goEl.disabled = !ok;
+  if(repoEl.value && !ok) errEl.textContent = 'That doesn’t look like a repo. Try owner/repo.';
+  else errEl.textContent = '';
+}
+repoEl.addEventListener('input', refresh);
+
+async function copy(text){
+  try{ await navigator.clipboard.writeText(text); return true; }
+  catch(e){
+    const t=document.createElement('textarea'); t.value=text; t.style.position='fixed'; t.style.opacity='0';
+    document.body.appendChild(t); t.select();
+    let ok=false; try{ ok=document.execCommand('copy'); }catch(_){}
+    document.body.removeChild(t); return ok;
+  }
+}
+
+goEl.addEventListener('click', async () => {
+  const repo = parseRepo(repoEl.value);
+  if(!repo){ refresh(); return; }
+  const branch = (branchEl.value||'main').trim() || 'main';
+  await copy(WORKFLOW);
+  const url = 'https://github.com/' + repo + '/new/' + encodeURIComponent(branch)
+            + '?filename=' + encodeURIComponent('.github/workflows/guardscore.yml');
+  window.open(url, '_blank', 'noopener');
+});
+
+const copy2 = document.getElementById('copy2');
+const flash2 = document.getElementById('flash2');
+copy2.addEventListener('click', async () => {
+  if(await copy(WORKFLOW)){ flash2.classList.add('on'); setTimeout(()=>flash2.classList.remove('on'), 1600); }
+});
+
+refresh();
+</script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+{"name":"22_service_key_in_browser","membership":"memberships","tables":{"memberships":{"legitOps":["read"]},"notes":{"legitOps":["read","insert","update","delete"]}},"expect":{"verdict":"unsafe","classes":["service_key_exposed"]}}

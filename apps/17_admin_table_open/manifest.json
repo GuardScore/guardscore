@@ -1,0 +1,1 @@
+{"name":"17_admin_table_open","expect":{"verdict":"unsafe","classes":["self_grant_admin"]}}

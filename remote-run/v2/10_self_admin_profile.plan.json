@@ -1,0 +1,786 @@
+{
+  "specs": [
+    {
+      "id": "notes.anon.read",
+      "table": "notes",
+      "cls": "anon_read",
+      "kind": "attack",
+      "actor": {
+        "role": "anon"
+      },
+      "sql": "select count(*) as n from public.\"notes\"",
+      "judge": "count"
+    },
+    {
+      "id": "notes.anon.update",
+      "table": "notes",
+      "cls": "anon_write",
+      "kind": "attack",
+      "actor": {
+        "role": "anon"
+      },
+      "sql": "update public.\"notes\" set \"user_id\" = \"user_id\" where true",
+      "judge": "affected"
+    },
+    {
+      "id": "notes.anon.delete",
+      "table": "notes",
+      "cls": "anon_write",
+      "kind": "attack",
+      "actor": {
+        "role": "anon"
+      },
+      "sql": "delete from public.\"notes\" where true",
+      "judge": "affected"
+    },
+    {
+      "id": "notes.cross.read",
+      "table": "notes",
+      "cls": "cross_user_read",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "select count(*) as n from public.\"notes\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "count"
+    },
+    {
+      "id": "notes.forged_meta.read",
+      "table": "notes",
+      "cls": "trusts_user_metadata",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b",
+        "userMeta": {
+          "role": "admin",
+          "is_admin": true,
+          "admin": true
+        }
+      },
+      "sql": "select count(*) as n from public.\"notes\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "count",
+      "dependsOn": {
+        "id": "notes.cross.read",
+        "status": "blocked"
+      }
+    },
+    {
+      "id": "notes.cross.update",
+      "table": "notes",
+      "cls": "cross_user_write",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "update public.\"notes\" set \"user_id\" = \"user_id\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "affected"
+    },
+    {
+      "id": "notes.cross.delete",
+      "table": "notes",
+      "cls": "cross_user_write",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "delete from public.\"notes\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "affected"
+    },
+    {
+      "id": "notes.cross.blind_update",
+      "table": "notes",
+      "cls": "cross_user_write",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "update public.\"notes\" set \"body\" = (jsonb_populate_record(null::public.\"notes\", $1::jsonb)).\"body\"",
+      "params": [
+        "{\"body\":\"notes alice 2\"}"
+      ],
+      "judge": "affected",
+      "allowed": 1
+    },
+    {
+      "id": "notes.cross.blind_delete",
+      "table": "notes",
+      "cls": "cross_user_write",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "delete from public.\"notes\"",
+      "judge": "affected",
+      "allowed": 1
+    },
+    {
+      "id": "notes.cross.insert_as_other",
+      "table": "notes",
+      "cls": "impersonated_insert",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "insert into public.\"notes\" (\"body\", \"user_id\") select \"body\", \"user_id\" from jsonb_populate_record(null::public.\"notes\", $1::jsonb)",
+      "params": [
+        "{\"body\":\"notes alice 2\",\"user_id\":\"00000000-0000-4000-8000-00000000000a\"}"
+      ],
+      "judge": "affected"
+    },
+    {
+      "id": "notes.anon.insert",
+      "table": "notes",
+      "cls": "anon_write",
+      "kind": "attack",
+      "actor": {
+        "role": "anon"
+      },
+      "sql": "insert into public.\"notes\" (\"body\", \"user_id\") select \"body\", \"user_id\" from jsonb_populate_record(null::public.\"notes\", $1::jsonb)",
+      "params": [
+        "{\"body\":\"notes alice 2\",\"user_id\":\"00000000-0000-4000-8000-00000000000a\"}"
+      ],
+      "judge": "affected"
+    },
+    {
+      "id": "notes.legit.read_own",
+      "table": "notes",
+      "cls": "legit",
+      "kind": "legit",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000a"
+      },
+      "sql": "select count(*) as n from public.\"notes\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "count"
+    },
+    {
+      "id": "notes.legit.insert_own",
+      "table": "notes",
+      "cls": "legit",
+      "kind": "legit",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000a"
+      },
+      "sql": "insert into public.\"notes\" (\"body\", \"user_id\") select \"body\", \"user_id\" from jsonb_populate_record(null::public.\"notes\", $1::jsonb)",
+      "params": [
+        "{\"body\":\"notes alice 2\",\"user_id\":\"00000000-0000-4000-8000-00000000000a\"}"
+      ],
+      "judge": "affected"
+    },
+    {
+      "id": "notes.legit.update_own",
+      "table": "notes",
+      "cls": "legit",
+      "kind": "legit",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000a"
+      },
+      "sql": "update public.\"notes\" set \"user_id\" = \"user_id\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "affected"
+    },
+    {
+      "id": "profiles.anon.read",
+      "table": "profiles",
+      "cls": "anon_read",
+      "kind": "attack",
+      "actor": {
+        "role": "anon"
+      },
+      "sql": "select count(*) as n from public.\"profiles\"",
+      "judge": "count"
+    },
+    {
+      "id": "profiles.anon.update",
+      "table": "profiles",
+      "cls": "anon_write",
+      "kind": "attack",
+      "actor": {
+        "role": "anon"
+      },
+      "sql": "update public.\"profiles\" set \"id\" = \"id\" where true",
+      "judge": "affected"
+    },
+    {
+      "id": "profiles.anon.delete",
+      "table": "profiles",
+      "cls": "anon_write",
+      "kind": "attack",
+      "actor": {
+        "role": "anon"
+      },
+      "sql": "delete from public.\"profiles\" where true",
+      "judge": "affected"
+    },
+    {
+      "id": "profiles.cross.read",
+      "table": "profiles",
+      "cls": "cross_user_read",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "select count(*) as n from public.\"profiles\" where \"id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "count"
+    },
+    {
+      "id": "profiles.forged_meta.read",
+      "table": "profiles",
+      "cls": "trusts_user_metadata",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b",
+        "userMeta": {
+          "role": "admin",
+          "is_admin": true,
+          "admin": true
+        }
+      },
+      "sql": "select count(*) as n from public.\"profiles\" where \"id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "count",
+      "dependsOn": {
+        "id": "profiles.cross.read",
+        "status": "blocked"
+      }
+    },
+    {
+      "id": "profiles.cross.update",
+      "table": "profiles",
+      "cls": "cross_user_write",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "update public.\"profiles\" set \"id\" = \"id\" where \"id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "affected"
+    },
+    {
+      "id": "profiles.cross.delete",
+      "table": "profiles",
+      "cls": "cross_user_write",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "delete from public.\"profiles\" where \"id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "affected"
+    },
+    {
+      "id": "profiles.cross.blind_update",
+      "table": "profiles",
+      "cls": "cross_user_write",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "update public.\"profiles\" set \"display_name\" = (jsonb_populate_record(null::public.\"profiles\", $1::jsonb)).\"display_name\"",
+      "params": [
+        "{\"display_name\":\"alice\"}"
+      ],
+      "judge": "affected",
+      "allowed": 1
+    },
+    {
+      "id": "profiles.cross.blind_delete",
+      "table": "profiles",
+      "cls": "cross_user_write",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "delete from public.\"profiles\"",
+      "judge": "affected",
+      "allowed": 1
+    },
+    {
+      "id": "profiles.cross.insert_as_other",
+      "table": "profiles",
+      "cls": "impersonated_insert",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "insert into public.\"profiles\" (\"id\", \"role\", \"display_name\") select \"id\", \"role\", \"display_name\" from jsonb_populate_record(null::public.\"profiles\", $1::jsonb)",
+      "params": [
+        "{\"id\":\"00000000-0000-4000-8000-00000000000a\",\"role\":\"user\",\"display_name\":\"alice\"}"
+      ],
+      "judge": "affected"
+    },
+    {
+      "id": "profiles.anon.insert",
+      "table": "profiles",
+      "cls": "anon_write",
+      "kind": "attack",
+      "actor": {
+        "role": "anon"
+      },
+      "sql": "insert into public.\"profiles\" (\"id\", \"role\", \"display_name\") select \"id\", \"role\", \"display_name\" from jsonb_populate_record(null::public.\"profiles\", $1::jsonb)",
+      "params": [
+        "{\"id\":\"00000000-0000-4000-8000-00000000000a\",\"role\":\"user\",\"display_name\":\"alice\"}"
+      ],
+      "judge": "affected"
+    },
+    {
+      "id": "profiles.legit.read_own",
+      "table": "profiles",
+      "cls": "legit",
+      "kind": "legit",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000a"
+      },
+      "sql": "select count(*) as n from public.\"profiles\" where \"id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "count"
+    },
+    {
+      "id": "profiles.legit.update_own",
+      "table": "profiles",
+      "cls": "legit",
+      "kind": "legit",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000a"
+      },
+      "sql": "update public.\"profiles\" set \"id\" = \"id\" where \"id\" = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "affected"
+    },
+    {
+      "id": "profiles.self_grant_admin.update",
+      "table": "profiles",
+      "cls": "self_grant_admin",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "with u as (update public.\"profiles\" set \"role\" = $1 where \"id\" = '00000000-0000-4000-8000-00000000000b' returning \"role\") select count(*) as n from u where \"role\"::text = $2",
+      "params": [
+        "admin",
+        "admin"
+      ],
+      "judge": "count",
+      "anyErrorBlocks": true
+    }
+  ],
+  "local": [
+    {
+      "id": "notes.anon.read",
+      "table": "notes",
+      "class": "anon_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "select count(*) as n from public.\"notes\"",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "notes.anon.update",
+      "table": "notes",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "update public.\"notes\" set \"user_id\" = \"user_id\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "notes.anon.delete",
+      "table": "notes",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "delete from public.\"notes\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "notes.cross.read",
+      "table": "notes",
+      "class": "cross_user_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "select count(*) as n from public.\"notes\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "notes.forged_meta.read",
+      "table": "notes",
+      "class": "trusts_user_metadata",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B with self-edited metadata",
+        "sql": "select count(*) as n from public.\"notes\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 0
+        }
+      },
+      "dependsOn": {
+        "id": "notes.cross.read",
+        "status": "blocked"
+      }
+    },
+    {
+      "id": "notes.cross.update",
+      "table": "notes",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"notes\" set \"user_id\" = \"user_id\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "notes.cross.delete",
+      "table": "notes",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"notes\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "notes.cross.blind_update",
+      "table": "notes",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"notes\" set \"body\" = (jsonb_populate_record(null::public.\"notes\", $1::jsonb)).\"body\"",
+        "observed": {
+          "rows_affected": 1,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "notes.cross.blind_delete",
+      "table": "notes",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"notes\"",
+        "observed": {
+          "rows_affected": 1,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "notes.cross.insert_as_other",
+      "table": "notes",
+      "class": "impersonated_insert",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "insert into public.\"notes\" (\"body\", \"user_id\") select \"body\", \"user_id\" from jsonb_populate_record(null::public.\"notes\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"notes\""
+        }
+      }
+    },
+    {
+      "id": "notes.anon.insert",
+      "table": "notes",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "insert into public.\"notes\" (\"body\", \"user_id\") select \"body\", \"user_id\" from jsonb_populate_record(null::public.\"notes\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"notes\""
+        }
+      }
+    },
+    {
+      "id": "notes.legit.read_own",
+      "table": "notes",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "select count(*) as n from public.\"notes\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 1
+        }
+      }
+    },
+    {
+      "id": "notes.legit.insert_own",
+      "table": "notes",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "insert into public.\"notes\" (\"body\", \"user_id\") select \"body\", \"user_id\" from jsonb_populate_record(null::public.\"notes\", $1::jsonb)",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    },
+    {
+      "id": "notes.legit.update_own",
+      "table": "notes",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "update public.\"notes\" set \"user_id\" = \"user_id\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    },
+    {
+      "id": "profiles.anon.read",
+      "table": "profiles",
+      "class": "anon_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "select count(*) as n from public.\"profiles\"",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "profiles.anon.update",
+      "table": "profiles",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "update public.\"profiles\" set \"id\" = \"id\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "profiles.anon.delete",
+      "table": "profiles",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "delete from public.\"profiles\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "profiles.cross.read",
+      "table": "profiles",
+      "class": "cross_user_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "select count(*) as n from public.\"profiles\" where \"id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "profiles.forged_meta.read",
+      "table": "profiles",
+      "class": "trusts_user_metadata",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B with self-edited metadata",
+        "sql": "select count(*) as n from public.\"profiles\" where \"id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 0
+        }
+      },
+      "dependsOn": {
+        "id": "profiles.cross.read",
+        "status": "blocked"
+      }
+    },
+    {
+      "id": "profiles.cross.update",
+      "table": "profiles",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"profiles\" set \"id\" = \"id\" where \"id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "profiles.cross.delete",
+      "table": "profiles",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"profiles\" where \"id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "profiles.cross.blind_update",
+      "table": "profiles",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"profiles\" set \"display_name\" = (jsonb_populate_record(null::public.\"profiles\", $1::jsonb)).\"display_name\"",
+        "observed": {
+          "rows_affected": 1,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "profiles.cross.blind_delete",
+      "table": "profiles",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"profiles\"",
+        "observed": {
+          "rows_affected": 0,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "profiles.cross.insert_as_other",
+      "table": "profiles",
+      "class": "impersonated_insert",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "insert into public.\"profiles\" (\"id\", \"role\", \"display_name\") select \"id\", \"role\", \"display_name\" from jsonb_populate_record(null::public.\"profiles\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"profiles\""
+        }
+      }
+    },
+    {
+      "id": "profiles.anon.insert",
+      "table": "profiles",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "insert into public.\"profiles\" (\"id\", \"role\", \"display_name\") select \"id\", \"role\", \"display_name\" from jsonb_populate_record(null::public.\"profiles\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"profiles\""
+        }
+      }
+    },
+    {
+      "id": "profiles.legit.read_own",
+      "table": "profiles",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "select count(*) as n from public.\"profiles\" where \"id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 1
+        }
+      }
+    },
+    {
+      "id": "profiles.legit.update_own",
+      "table": "profiles",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "update public.\"profiles\" set \"id\" = \"id\" where \"id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    },
+    {
+      "id": "profiles.self_grant_admin.update",
+      "table": "profiles",
+      "class": "self_grant_admin",
+      "kind": "attack",
+      "status": "leaked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "with u as (update public.\"profiles\" set \"role\" = $1 where \"id\" = '00000000-0000-4000-8000-00000000000b' returning \"role\") select count(*) as n from u where \"role\"::text = $2",
+        "observed": {
+          "rows_visible": 1
+        }
+      }
+    }
+  ]
+}

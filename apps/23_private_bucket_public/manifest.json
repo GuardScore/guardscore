@@ -1,0 +1,1 @@
+{"name":"23_private_bucket_public","expect":{"verdict":"unsafe","classes":["public_bucket"]}}

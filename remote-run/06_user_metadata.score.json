@@ -1,0 +1,237 @@
+{
+  "remote": [
+    {
+      "id": "invoices.anon.read",
+      "table": "invoices",
+      "class": "anon_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "select count(*) as n from public.\"invoices\"",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "invoices.anon.update",
+      "table": "invoices",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "update public.\"invoices\" set \"id\" = \"id\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "invoices.anon.delete",
+      "table": "invoices",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "delete from public.\"invoices\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "invoices.cross.read",
+      "table": "invoices",
+      "class": "cross_user_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "select count(*) as n from public.\"invoices\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "invoices.forged_meta.read",
+      "table": "invoices",
+      "class": "trusts_user_metadata",
+      "kind": "attack",
+      "status": "leaked",
+      "proof": {
+        "actor": "user B with self-edited metadata",
+        "sql": "select count(*) as n from public.\"invoices\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 1
+        }
+      },
+      "dependsOn": {
+        "id": "invoices.cross.read",
+        "status": "blocked"
+      }
+    },
+    {
+      "id": "invoices.cross.update",
+      "table": "invoices",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"invoices\" set \"user_id\" = \"user_id\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "invoices.cross.delete",
+      "table": "invoices",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"invoices\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "invoices.cross.blind_update",
+      "table": "invoices",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"invoices\" set \"total_cents\" = (jsonb_populate_record(null::public.\"invoices\", $1::jsonb)).\"total_cents\"",
+        "observed": {
+          "rows_affected": 1,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "invoices.cross.blind_delete",
+      "table": "invoices",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"invoices\"",
+        "observed": {
+          "rows_affected": 0,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "invoices.cross.insert_as_other",
+      "table": "invoices",
+      "class": "impersonated_insert",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "insert into public.\"invoices\" (\"user_id\", \"total_cents\") select \"user_id\", \"total_cents\" from jsonb_populate_record(null::public.\"invoices\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"invoices\""
+        }
+      }
+    },
+    {
+      "id": "invoices.anon.insert",
+      "table": "invoices",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "insert into public.\"invoices\" (\"user_id\", \"total_cents\") select \"user_id\", \"total_cents\" from jsonb_populate_record(null::public.\"invoices\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"invoices\""
+        }
+      }
+    },
+    {
+      "id": "invoices.legit.read_own",
+      "table": "invoices",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "select count(*) as n from public.\"invoices\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 1
+        }
+      }
+    },
+    {
+      "id": "invoices.legit.insert_own",
+      "table": "invoices",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "insert into public.\"invoices\" (\"user_id\", \"total_cents\") select \"user_id\", \"total_cents\" from jsonb_populate_record(null::public.\"invoices\", $1::jsonb)",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    },
+    {
+      "id": "invoices.legit.update_own",
+      "table": "invoices",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "update public.\"invoices\" set \"user_id\" = \"user_id\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    }
+  ],
+  "summary": {
+    "verdict": "unsafe",
+    "guardScore": 59,
+    "attacks": {
+      "run": 11,
+      "blocked": 10,
+      "leaked": 1
+    },
+    "legit": {
+      "run": 3,
+      "ok": 3,
+      "broken": 0
+    },
+    "inconclusive": 0
+  },
+  "localSummary": {
+    "verdict": "unsafe",
+    "guardScore": 59,
+    "attacks": {
+      "run": 11,
+      "blocked": 10,
+      "leaked": 1
+    },
+    "legit": {
+      "run": 3,
+      "ok": 3,
+      "broken": 0
+    },
+    "inconclusive": 0
+  },
+  "diffs": []
+}

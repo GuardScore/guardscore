@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "true",
+  "outputDirectory": ".",
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/badge/:score.svg", "destination": "/api/badge?score=:score" },
+    { "source": "/badge/:score", "destination": "/api/badge?score=:score" }
+  ],
+  "headers": [
+    {
+      "source": "/api/badge",
+      "headers": [{ "key": "access-control-allow-origin", "value": "*" }]
+    }
+  ]
+}

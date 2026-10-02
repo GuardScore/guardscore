@@ -1,0 +1,3 @@
+// Server-side: fine, but should come from an env var.
+const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4YW1wbGVyZWYwMDAwMDAwMDAwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoyMDAwMDAwMDAwfQ.ZmFrZXNpZ25hdHVyZWZvcnRlc3RzMDAwMDAwMDAwMDA';
+export default key;

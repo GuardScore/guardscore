@@ -1,0 +1,48 @@
+{
+  "name": "verified-changes",
+  "version": "0.18.0",
+  "description": "Guard Score — attack-based security verifier for AI-built apps. Builds a private copy of your backend, attacks it, and returns a 0–100 score with proven fixes. Supabase, Postgres, Firebase, plus leaked-secret scanning.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/run.js && node test/agent-style.js && node test/remote-dryrun.js && node test/mcp.js && node test/warm.js && node test/api.js && node test/badge.js && node test/web-scan.js && node test/web-firebase-scan.js && node test/firebase-engine.js && node test/postgres-engine.js && node test/render.js && node test/secrets-scan.js && node test/prisma-scan.js && node test/monitor.js && node test/review.js && node test/live.js && node test/corpus.js",
+    "check": "node src/cli.js check",
+    "bench": "node bench/head-to-head.js",
+    "bench:v2": "bash bench/outcome/v2/run.sh",
+    "score:v2": "node bench/outcome/v2/score.js",
+    "mcp": "node src/mcp.js",
+    "serve": "node src/cli.js serve",
+    "firebase:check": "firebase emulators:exec --only firestore,auth,storage \"node scripts/firebase-run.mjs .\""
+  },
+  "keywords": ["security", "guard-score", "supabase", "postgres", "rls", "row-level-security", "firebase", "firestore", "prisma", "secrets-scanning", "vibecoding", "ai-generated-code", "sast", "devsecops", "audit"],
+  "author": "",
+  "license": "Apache-2.0",
+  "repository": { "type": "git", "url": "git+https://github.com/Tunceroo/guardscore.git" },
+  "bugs": { "url": "https://github.com/Tunceroo/guardscore/issues" },
+  "homepage": "https://github.com/Tunceroo/guardscore#readme",
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite-pgvector": "^0.0.9",
+    "@modelcontextprotocol/sdk": "^1.30.1",
+    "zod": "^4.6.5"
+  },
+  "type": "module",
+  "bin": {
+    "verified-changes": "src/cli.js",
+    "verified-changes-mcp": "src/mcp.js"
+  },
+  "files": [
+    "src",
+    "web",
+    "scripts",
+    "docs",
+    "action.yml",
+    "examples",
+    "apps",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=20"
+  }
+}

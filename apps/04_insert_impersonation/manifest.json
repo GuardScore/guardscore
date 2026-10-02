@@ -1,0 +1,1 @@
+{"name":"04_insert_impersonation","expect":{"verdict":"unsafe","classes":["impersonated_insert"]}}

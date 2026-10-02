@@ -1,0 +1,1 @@
+{"name":"06_user_metadata","expect":{"verdict":"unsafe","classes":["trusts_user_metadata"]}}

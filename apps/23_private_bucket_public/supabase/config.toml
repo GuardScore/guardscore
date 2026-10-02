@@ -1,0 +1,6 @@
+[auth.email]
+enable_confirmations = false
+
+[auth]
+jwt_expiry = 3600
+minimum_password_length = 6

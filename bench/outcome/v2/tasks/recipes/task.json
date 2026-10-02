@@ -1,0 +1,13 @@
+{
+  "id": "recipes",
+  "kind": "single",
+  "steps": [
+    "recipe app where people save their own recipes and can publish some of them for everyone to see"
+  ],
+  "manifest": {
+    "sharedTables": [
+      "^(user_)?profiles?$"
+    ]
+  },
+  "note": "Only published recipes are meant to be public. Sample rows are unpublished, so anyone reading them is a leak."
+}

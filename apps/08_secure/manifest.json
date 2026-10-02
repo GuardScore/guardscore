@@ -1,0 +1,1 @@
+{"name":"08_secure","membership":"memberships","tables":{"memberships":{"legitOps":["read"]},"notes":{"legitOps":["read","insert","update","delete"]}},"expect":{"verdict":"safe","classes":[]}}

@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Packed tarballs (never commit build artifacts)
+*.tgz
+*.tar.gz
+
+# Scan output
+*.sarif
+verified-changes.sarif
+
+# Vendored copies
+vendor/
+
+# Ecosystem study — disclosure-only, never publish
+study/out/
+study/input/
+
+# OS / editor junk
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example

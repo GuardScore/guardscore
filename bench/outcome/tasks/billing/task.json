@@ -1,0 +1,5 @@
+{
+  "id": "billing",
+  "prompt": "Build invoices for a SaaS app on Supabase. Customers see their own invoices; staff with an admin role see all invoices. Write the database migration. Use public.invoices (id uuid default gen_random_uuid(), user_id uuid referencing auth.users, total_cents int).",
+  "manifest": { "tables": { "invoices": { "legitOps": ["read"] } } }
+}

@@ -1,0 +1,12 @@
+create table habits (id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id) default auth.uid(), name text not null);
+create table checkins (id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id) default auth.uid(), habit_id uuid not null references habits(id) on delete cascade, day date not null default current_date);
+create table streaks (habit_id uuid primary key references habits(id) on delete cascade, user_id uuid not null references auth.users(id), days int not null default 0);
+alter table habits enable row level security;
+alter table checkins enable row level security;
+alter table streaks enable row level security;
+create policy "own habits" on habits for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own checkins read" on checkins for select using (auth.uid() = user_id);
+create policy "own checkins write" on checkins for insert with check (auth.uid() = user_id);
+create policy "own checkins delete" on checkins for delete using (auth.uid() = user_id);
+create policy "leaderboard: every member sees streaks" on streaks for select to authenticated using (true);
+create policy "own streaks write" on streaks for insert with check (auth.uid() = user_id);

@@ -1,0 +1,1 @@
+{"name":"03_update_open","expect":{"verdict":"unsafe","classes":["cross_user_write"]}}

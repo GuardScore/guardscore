@@ -1,0 +1,59 @@
+[
+ {
+  "case": "vercel_subscription_payments",
+  "verdict": "safe",
+  "why": "server-only customers table (author comment)",
+  "source": "github:vercel_nextjs-subscription-payments"
+ },
+ {
+  "case": "makerkit_lite",
+  "verdict": "safe",
+  "why": "owner found from policies (accounts.id = auth.uid())",
+  "source": "github:makerkit_nextjs-saas-starter-kit-lite/apps/web"
+ },
+ {
+  "case": "razikus_mfa",
+  "verdict": "safe",
+  "why": "aal claim and auth.mfa_factors",
+  "source": "github:Razikus_supabase-nextjs-template"
+ },
+ {
+  "case": "stripe_example_readonly",
+  "verdict": "safe",
+  "why": "read-only one-row-per-user table filled by the server",
+  "source": "github:supabase-community_expo-stripe-payments-with-supabase-functions"
+ },
+ {
+  "case": "doc_search_server_tables",
+  "verdict": "safe",
+  "why": "ownerless tables with no policies are not a coverage gap",
+  "source": "github:supabase-community_nextjs-openai-doc-search"
+ },
+ {
+  "case": "chatgpt_your_files",
+  "verdict": "safe",
+  "why": "vault, storage-object fixtures, parent row with children",
+  "source": "github:supabase-community_chatgpt-your-files"
+ },
+ {
+  "case": "user_management_storage_ops",
+  "verdict": "safe",
+  "why": "storage.allow_any_operation",
+  "source": "github:supabase_supabase/examples/user-management/nextjs-user-management"
+ },
+ {
+  "case": "real_chat_role_column",
+  "verdict": "breaks_app",
+  "why": "messages.role is a chat role, not a privilege; the one real bug is a function referencing a missing column"
+ },
+ {
+  "case": "real_allow_all_policy",
+  "verdict": "unsafe",
+  "why": "RLS on with an allow-all policy"
+ },
+ {
+  "case": "real_permissive_delete_policy",
+  "verdict": "unsafe",
+  "why": "a permissive delete policy meant as a restriction"
+ }
+]

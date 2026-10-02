@@ -1,0 +1,1 @@
+{"name":"21_rpc_leak","expect":{"verdict":"unsafe","classes":["rpc_leak"]}}

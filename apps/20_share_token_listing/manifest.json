@@ -1,0 +1,1 @@
+{"name":"20_share_token_listing","expect":{"verdict":"unsafe","classes":["token_enumeration"]}}

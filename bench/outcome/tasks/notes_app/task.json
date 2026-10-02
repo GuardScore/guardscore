@@ -1,0 +1,5 @@
+{
+  "id": "notes_app",
+  "prompt": "Build a notes app on Supabase. Users sign up, then create, edit and delete their own notes. Write the database migration. Use a table public.notes with columns id (uuid, default gen_random_uuid()), user_id (uuid referencing auth.users), body (text).",
+  "manifest": { "tables": { "notes": { "legitOps": ["read", "insert", "update", "delete"] } } }
+}

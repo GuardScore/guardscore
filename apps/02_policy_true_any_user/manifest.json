@@ -1,0 +1,1 @@
+{"name":"02_policy_true_any_user","expect":{"verdict":"unsafe","classes":["cross_user_read"]}}

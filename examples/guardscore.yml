@@ -1,0 +1,49 @@
+# Guard Score — attacks a private copy of your app's backend on every change,
+# proves any data leak, confirms your real users still work, and posts a score.
+#
+# Nothing leaves your infrastructure: this runs inside your own GitHub Actions
+# runner. Your code and schema are never sent to us.
+#
+# To use it: save this file in your repository at
+#   .github/workflows/guardscore.yml
+# GitHub runs it automatically on every push and pull request.
+
+name: Guard Score
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+# Lets Guard Score post the result as a comment on your pull requests
+# and upload findings to the Security tab.
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  guard-score:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Guard Score
+        id: guard
+        uses: GuardScore/guardscore@v1
+        with:
+          # The folder that holds your backend. "." means the repo root.
+          # Guard Score auto-detects Supabase, Postgres, or Firebase inside it.
+          project-dir: .
+          # Fail the check on a proven data leak. Use "any" to also fail when
+          # the rules would break your real users, or when nothing could be tested.
+          fail-on: unsafe
+          # Post the score + proof as a pull-request comment.
+          comment: true
+
+      # Optional: publish the findings to your repo's Security tab.
+      - name: Upload results to the Security tab
+        if: always() && hashFiles('verified-changes.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: verified-changes.sarif

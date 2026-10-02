@@ -1,0 +1,1 @@
+{"name":"15_public_profiles_with_email","expect":{"verdict":"unsafe","classes":["anon_read","cross_user_read"]}}

@@ -1,0 +1,1 @@
+{"name":"01_rls_disabled","expect":{"verdict":"unsafe","classes":["anon_read","anon_write","cross_user_read","cross_user_write","impersonated_insert"]}}

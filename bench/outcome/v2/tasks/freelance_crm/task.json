@@ -1,0 +1,12 @@
+{
+  "id": "freelance_crm",
+  "kind": "single",
+  "steps": [
+    "I'm a freelancer, make me a simple CRM I can sell to other freelancers - clients, projects, invoices"
+  ],
+  "manifest": {
+    "sharedTables": [
+      "^(user_)?profiles?$"
+    ]
+  }
+}

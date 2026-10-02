@@ -1,0 +1,137 @@
+{
+  "specs": [
+    {
+      "id": "storage.anon.read",
+      "table": "storage.objects",
+      "cls": "storage_read",
+      "kind": "attack",
+      "actor": {
+        "role": "anon"
+      },
+      "sql": "select count(*) as n from storage.objects where owner = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "count"
+    },
+    {
+      "id": "storage.cross.read",
+      "table": "storage.objects",
+      "cls": "storage_read",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "select count(*) as n from storage.objects where owner = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "count"
+    },
+    {
+      "id": "storage.cross.delete",
+      "table": "storage.objects",
+      "cls": "storage_write",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "delete from storage.objects where owner = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "affected"
+    },
+    {
+      "id": "storage.cross.blind_delete",
+      "table": "storage.objects",
+      "cls": "storage_write",
+      "kind": "attack",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000b"
+      },
+      "sql": "delete from storage.objects",
+      "judge": "affected",
+      "allowed": 1
+    },
+    {
+      "id": "storage.legit.read_own",
+      "table": "storage.objects",
+      "cls": "legit",
+      "kind": "legit",
+      "actor": {
+        "role": "authenticated",
+        "sub": "00000000-0000-4000-8000-00000000000a"
+      },
+      "sql": "select count(*) as n from storage.objects where owner = '00000000-0000-4000-8000-00000000000a'",
+      "judge": "count"
+    }
+  ],
+  "local": [
+    {
+      "id": "storage.anon.read",
+      "table": "storage.objects",
+      "class": "storage_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "select count(*) as n from storage.objects where owner = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "storage.cross.read",
+      "table": "storage.objects",
+      "class": "storage_read",
+      "kind": "attack",
+      "status": "leaked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "select count(*) as n from storage.objects where owner = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 1
+        }
+      }
+    },
+    {
+      "id": "storage.cross.delete",
+      "table": "storage.objects",
+      "class": "storage_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from storage.objects where owner = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "storage.cross.blind_delete",
+      "table": "storage.objects",
+      "class": "storage_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from storage.objects",
+        "observed": {
+          "rows_affected": 1,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "storage.legit.read_own",
+      "table": "storage.objects",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "select count(*) as n from storage.objects where owner = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 1
+        }
+      }
+    }
+  ]
+}

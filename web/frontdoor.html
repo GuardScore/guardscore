@@ -1,0 +1,556 @@
+<title>Guard Score</title>
+<meta name="description" content="Paste your Supabase schema and see exactly what a stranger can read, change, or delete — proven by attack, with the one-line fix.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: light;
+    --paper:#fbfbfc; --panel:#ffffff; --sunk:#f6f7f9;
+    --ink:#16171b; --ink-2:#3a3e47; --muted:#71767f; --faint:#9aa0a8;
+    --line:#eceef1; --line-2:#e0e2e7; --line-3:#d3d6dc;
+    --accent:#3346c8; --accent-ink:#2c3db0; --accent-wash:#eef0fb;
+    --crit:#c23934; --crit-wash:#fbeeed; --high:#b45c17; --high-wash:#fbf1e8;
+    --warn:#9a6b0e; --warn-wash:#faf3e2; --safe:#177f53; --safe-wash:#e9f4ee;
+    --sans:'Hanken Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --r:10px;
+  }
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+    color-scheme: dark;
+    --paper:#0a0b0e; --panel:#121419; --sunk:#0f1115;
+    --ink:#edeef2; --ink-2:#c2c6cf; --muted:#8a909b; --faint:#666c77;
+    --line:#20232a; --line-2:#2a2e37; --line-3:#363b45;
+    --accent:#8b98f5; --accent-ink:#a6b0f8; --accent-wash:#181b2c;
+    --crit:#f0817c; --crit-wash:#241416; --high:#e0975a; --high-wash:#231810;
+    --warn:#d6ac52; --warn-wash:#211b0f; --safe:#5cbb8b; --safe-wash:#0f1f18;
+  }}
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --paper:#0a0b0e; --panel:#121419; --sunk:#0f1115;
+    --ink:#edeef2; --ink-2:#c2c6cf; --muted:#8a909b; --faint:#666c77;
+    --line:#20232a; --line-2:#2a2e37; --line-3:#363b45;
+    --accent:#8b98f5; --accent-ink:#a6b0f8; --accent-wash:#181b2c;
+    --crit:#f0817c; --crit-wash:#241416; --high:#e0975a; --high-wash:#231810;
+    --warn:#d6ac52; --warn-wash:#211b0f; --safe:#5cbb8b; --safe-wash:#0f1f18;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  .wrap{max-width:940px;margin:0 auto;padding-inline:24px}
+  a{color:inherit;text-decoration:none}
+  h1,h2,h3,h4{margin:0;font-weight:700;letter-spacing:-.021em;text-wrap:balance}
+  p{margin:0}
+  code,.mono{font-family:var(--mono)}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  ::selection{background:var(--accent-wash)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+  button{font-family:inherit}
+  hr{border:0;border-top:1px solid var(--line);margin:0}
+
+  /* top bar */
+  header{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:color-mix(in srgb,var(--paper) 86%,transparent);backdrop-filter:saturate(1.2) blur(10px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;gap:28px;height:58px}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:-.02em;font-size:15.5px;white-space:nowrap}
+  .brand svg{display:block}
+  .nav .links{display:none;gap:26px;margin-left:8px}
+  .nav .links a{font-size:14px;color:var(--muted);font-weight:500}
+  .nav .links a:hover{color:var(--ink)}
+  .nav .sp{flex:1}
+  .iconbtn{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line-2);border-radius:8px;background:var(--panel);color:var(--ink-2);cursor:pointer}
+  .iconbtn:hover{border-color:var(--line-3);color:var(--ink)}
+  .navcta{display:inline-flex;align-items:center;height:34px;padding:0 14px;border-radius:8px;background:var(--ink);color:var(--paper);font-size:13.5px;font-weight:600}
+  .navcta:hover{opacity:.9}
+  @media(min-width:820px){.nav .links{display:flex}}
+  @media(max-width:560px){.nav{gap:14px}.navcta{display:none}}
+
+  /* hero */
+  .hero{padding-block:64px 30px}
+  .hero h1{font-size:clamp(32px,5.2vw,52px);font-weight:800;line-height:1.05;margin:16px 0 0;max-width:15ch}
+  .hero .lede{font-size:clamp(16.5px,2vw,19px);color:var(--ink-2);max-width:60ch;margin:20px 0 0;line-height:1.5}
+  .hero .lede b{font-weight:600;color:var(--ink)}
+
+  /* scanner */
+  .stackpick{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:26px}
+  .stackbtn{border:1px solid var(--line-2);background:var(--panel);color:var(--ink-2);padding:8px 16px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer}
+  .stackbtn:hover{border-color:var(--line-3);color:var(--ink)}
+  .stackbtn.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .stacksoon{font-family:var(--mono);font-size:11.5px;color:var(--faint);margin-left:6px}
+  .console{margin-top:14px;background:var(--panel);border:1px solid var(--line-2);border-radius:14px;overflow:hidden;box-shadow:0 1px 1px rgba(20,22,28,.02),0 12px 34px -18px rgba(20,22,28,.14)}
+  .console-bar{display:flex;align-items:center;gap:12px;height:42px;padding:0 16px;border-bottom:1px solid var(--line);background:var(--sunk)}
+  .console-bar .path{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .console-bar .right{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint);display:inline-flex;align-items:center;gap:6px}
+  .console-bar .right::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--safe)}
+  textarea{display:block;width:100%;border:0;background:transparent;color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.65;padding:18px 16px;min-height:196px;resize:vertical;tab-size:2}
+  textarea::placeholder{color:var(--faint)}
+  textarea:focus{outline:none}
+  .console-foot{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid var(--line)}
+  .primary{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 20px;border:0;border-radius:9px;background:var(--ink);color:var(--paper);font-size:14.5px;font-weight:600;cursor:pointer}
+  .primary:hover{opacity:.9}
+  .secondary{height:40px;padding:0 16px;border:1px solid var(--line-2);border-radius:9px;background:var(--panel);color:var(--ink-2);font-size:14px;font-weight:500;cursor:pointer}
+  .secondary:hover{border-color:var(--line-3);color:var(--ink)}
+  .console-foot .hint{margin-left:auto;font-size:12.5px;color:var(--faint)}
+
+  /* trust strip */
+  .trust{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-top:24px;padding-top:22px;border-top:1px solid var(--line)}
+  .trust .t{font-size:13.5px;color:var(--muted);display:inline-flex;align-items:center;gap:8px}
+  .trust .t b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+  .trust .t svg{color:var(--safe)}
+
+  /* result */
+  .result{margin-top:16px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px;scroll-margin-top:78px}
+  .report{background:var(--panel);border:1px solid var(--line-2);border-radius:14px;overflow:hidden;min-width:0}
+  .report-head{display:flex;align-items:center;gap:26px;padding:24px 26px;min-width:0}
+  .verdict{min-width:0}
+  @media(max-width:560px){.report-head{flex-direction:column;align-items:flex-start;gap:18px}}
+  .gauge{position:relative;width:104px;height:104px;flex:none}
+  .gauge svg{transform:rotate(-90deg);display:block}
+  .gauge .center{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+  .gauge .score{font-size:30px;font-weight:800;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .gauge .max{font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:3px}
+  .verdict h2{font-size:22px;font-weight:700}
+  .verdict p{color:var(--ink-2);font-size:14.5px;margin-top:5px;max-width:52ch;line-height:1.5}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}
+  .chip{font-family:var(--mono);font-size:11.5px;font-weight:500;padding:4px 9px;border-radius:6px;letter-spacing:.01em}
+  .chip.c{color:var(--crit);background:var(--crit-wash)} .chip.h{color:var(--high);background:var(--high-wash)}
+  .chip.w{color:var(--warn);background:var(--warn-wash)} .chip.s{color:var(--safe);background:var(--safe-wash)}
+  .chip b{font-weight:700}
+
+  .findings{border-top:1px solid var(--line)}
+  .finding{padding:18px 26px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:88px minmax(0,1fr);gap:18px}
+  .finding:last-child{border-bottom:0}
+  @media(max-width:560px){.finding{grid-template-columns:minmax(0,1fr);gap:8px;padding:18px}}
+  .f-body{min-width:0}
+  .sev{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;padding:3px 0;height:fit-content}
+  .sev::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:1px}
+  .sev.critical{color:var(--crit)} .sev.critical::before{background:var(--crit)}
+  .sev.high{color:var(--high)} .sev.high::before{background:var(--high)}
+  .sev.warning{color:var(--warn)} .sev.warning::before{background:var(--warn)}
+  .f-body .tbl{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--ink);overflow-wrap:anywhere}
+  .f-body .what{margin-top:6px;font-size:14.5px;color:var(--ink-2);line-height:1.5}
+  .f-body details{margin-top:11px}
+  .f-body summary{font-family:var(--mono);font-size:12px;color:var(--accent-ink);cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:6px;user-select:none}
+  .f-body summary::-webkit-details-marker{display:none}
+  .f-body summary::before{content:"›";font-size:15px;transition:transform .15s;display:inline-block}
+  .f-body details[open] summary::before{transform:rotate(90deg)}
+  .f-body pre{margin:10px 0 0;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:12.5px;line-height:1.6;color:var(--ink-2);white-space:pre-wrap;overflow-x:auto}
+
+  /* share + upsell blocks */
+  .block{background:var(--panel);border:1px solid var(--line-2);border-radius:14px;padding:22px 26px}
+  .block h3{font-size:15.5px;font-weight:700}
+  .block .sub{color:var(--muted);font-size:13.5px;margin-top:4px;max-width:60ch;line-height:1.5}
+  .share-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:16px}
+  .snippet{display:flex;gap:8px;align-items:stretch;margin-top:14px;max-width:100%}
+  .snippet code{flex:1;min-width:0;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:12px;overflow-x:auto;white-space:nowrap;color:var(--ink-2)}
+  .copy{border:1px solid var(--line-2);background:var(--panel);color:var(--ink-2);border-radius:8px;padding:0 14px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+  .copy:hover{border-color:var(--line-3);color:var(--ink)}
+  .adds{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:12px}
+  .adds li{display:grid;grid-template-columns:20px 1fr;gap:10px;font-size:14px;color:var(--ink-2);line-height:1.5}
+  .adds li b{color:var(--ink);font-weight:600}
+  .adds .mk{color:var(--safe);margin-top:2px}
+  .runline{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:18px}
+  .runline .primary{text-decoration:none}
+
+  /* sections */
+  section{padding-block:56px}
+  section + section{border-top:1px solid var(--line)}
+  .sec-head{max-width:60ch}
+  .sec-head h2{font-size:clamp(23px,3vw,30px);font-weight:800;margin-top:10px}
+  .sec-head p{color:var(--ink-2);font-size:16px;margin-top:12px;line-height:1.55}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:34px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  @media(max-width:700px){.steps{grid-template-columns:1fr}}
+  .step{background:var(--panel);padding:24px}
+  .step .k{font-family:var(--mono);font-size:12px;color:var(--faint)}
+  .step h4{font-size:16px;font-weight:700;margin-top:12px}
+  .step p{color:var(--muted);font-size:14px;margin-top:7px;line-height:1.5}
+
+  /* benchmark */
+  .bench{display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:center;margin-top:6px}
+  @media(max-width:760px){.bench{grid-template-columns:1fr;gap:28px}}
+  .metrics{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .metric{background:var(--panel);display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:16px 20px}
+  .metric .lab{font-size:14px;color:var(--ink-2)}
+  .metric .val{font-family:var(--mono);font-weight:600;font-size:15px;font-variant-numeric:tabular-nums}
+  .metric .val .us{color:var(--ink)} .metric .val .them{color:var(--faint);font-weight:400}
+  .metric .val .sep{color:var(--faint);margin:0 8px;font-weight:400}
+  .bench-note{font-size:13px;color:var(--muted);margin-top:16px;line-height:1.5}
+
+  footer{border-top:1px solid var(--line);padding-block:40px 56px}
+  .foot{display:flex;flex-wrap:wrap;gap:24px;align-items:baseline;justify-content:space-between}
+  .foot .brand{font-size:14.5px}
+  .foot p{font-size:13px;color:var(--muted);max-width:52ch;line-height:1.5}
+  .foot .fl{display:flex;gap:22px;flex-wrap:wrap}
+  .foot .fl a{font-size:13.5px;color:var(--muted)}
+  .foot .fl a:hover{color:var(--ink)}
+</style>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top" aria-label="Guard Score home">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 1.5 3 4.2v5.1c0 4 2.9 7.2 7 8.7 4.1-1.5 7-4.7 7-8.7V4.2L10 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="m7.2 9.9 2 2 3.6-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Guard Score
+    </a>
+    <nav class="links">
+      <a href="#how">How it works</a>
+      <a href="#benchmark">Benchmark</a>
+      <a href="https://ideon.market/github">Add to GitHub</a>
+    </nav>
+    <span class="sp"></span>
+    <button class="iconbtn" id="theme" aria-label="Toggle color theme" title="Toggle theme">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v2M8 13v2M15 8h-2M3 8H1M12.7 3.3l-1.4 1.4M4.7 11.3l-1.4 1.4M12.7 12.7l-1.4-1.4M4.7 4.7 3.3 3.3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="8" r="2.6" stroke="currentColor" stroke-width="1.3"/></svg>
+    </button>
+    <a class="navcta" href="#scanner" id="navscan">Scan my app</a>
+  </div>
+</header>
+
+<main class="wrap" id="top">
+  <section class="hero" style="padding-block:64px 30px;border:0">
+    <div class="eyebrow">Guard Score · a security score for any app</div>
+    <h1>Is your <span id="stackname">Supabase</span> app leaking user data?</h1>
+    <p class="lede">Pick your stack and paste its rules. In seconds, see exactly what an anonymous visitor or another signed-in user can read, change, or delete — <b>proven by attack, not guessed</b>, each with the one-line fix. Nothing leaves your browser.</p>
+
+    <div class="stackpick" role="tablist" aria-label="Choose your stack">
+      <button class="stackbtn active" data-stack="supabase" role="tab" aria-selected="true">Supabase</button>
+      <button class="stackbtn" data-stack="firebase" role="tab" aria-selected="false">Firebase</button>
+      <span class="stacksoon">Postgres &amp; Prisma live in the CLI · Hasura coming</span>
+    </div>
+
+    <div class="console" id="scanner">
+      <div class="console-bar">
+        <span class="path" id="cpath">supabase/migrations/*.sql</span>
+        <span class="right">local</span>
+      </div>
+      <textarea id="sql" spellcheck="false" aria-label="Paste your backend rules"></textarea>
+      <div class="console-foot">
+        <button class="primary" id="scan">Check my rules</button>
+        <button class="secondary" id="demo">Load an example</button>
+        <span class="hint">Runs entirely in your browser</span>
+      </div>
+    </div>
+
+    <a href="https://ideon.market/github" style="display:flex;align-items:center;gap:13px;margin-top:16px;padding:14px 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-decoration:none;color:inherit;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--line)'">
+      <svg width="22" height="22" viewBox="0 0 16 16" fill="currentColor" style="flex:0 0 auto;opacity:.85"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      <span style="flex:1"><b style="font-weight:700">Don't want to paste? Add it to GitHub.</b><br><span style="color:var(--muted);font-size:14px">Runs the full attack on every change, in your own CI. No terminal, nothing uploaded.</span></span>
+      <span style="color:var(--accent);font-weight:700;font-size:14px;white-space:nowrap">Set it up →</span>
+    </a>
+
+    <div class="trust">
+      <span class="t"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Top score of <b>6 tools</b> on a blind benchmark</span>
+      <span class="t">Caught <b>21 / 21</b> real vulnerabilities</span>
+      <span class="t"><b>29 / 30</b> correct — fewest false alarms tested</span>
+    </div>
+
+    <div class="result" id="result" hidden></div>
+  </section>
+
+  <section id="how">
+    <div class="sec-head">
+      <div class="eyebrow">How it works</div>
+      <h2>One score. A growing set of engines.</h2>
+      <p>Guard Score is a Lighthouse-style score for backend security — one number, and a purpose-built engine under the hood for each stack. This page gives an instant static read; the full engine builds a private copy of your backend and attacks it to prove every hole. Supabase is live and blind-benchmarked; Firebase and more are rolling out.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="k">01</div><h4>Paste your schema</h4><p>Your <code>create table</code> and <code>create policy</code> statements. It never leaves the page — the check runs in your browser.</p></div>
+      <div class="step"><div class="k">02</div><h4>Read your Guard Score</h4><p>A 0–100 score and every obvious hole in plain English: anyone-can-read, anyone-can-write, public buckets — with the fix.</p></div>
+      <div class="step"><div class="k">03</div><h4>Prove it with the verifier</h4><p>One command builds a private Postgres copy and attacks it as a real intruder, confirming each hole and that your own users still work.</p></div>
+    </div>
+  </section>
+
+  <section id="benchmark">
+    <div class="bench">
+      <div class="sec-head">
+        <div class="eyebrow">Benchmark · Supabase engine</div>
+        <h2>The most accurate Supabase checker we've tested.</h2>
+        <p>Thirty real, public apps the tool had never seen. Every finding was proven in a real Postgres by reviewers who never saw any tool's output, and all six tools ran on the same apps. Method and per-app results are open — reproduce them yourself.</p>
+        <p class="bench-note">Figures show Guard Score's engine (Verified Changes) versus the next-best tool on each measure. Full method, the labeled corpus, and the scoring script are open in the repo — re-run it and check the numbers yourself.</p>
+      </div>
+      <div class="metrics">
+        <div class="metric"><span class="lab">Vulnerable apps caught</span><span class="val"><span class="us">21/21</span><span class="sep">vs</span><span class="them">20/21</span></span></div>
+        <div class="metric"><span class="lab">Named the exact table</span><span class="val"><span class="us">15/21</span><span class="sep">vs</span><span class="them">6/21</span></span></div>
+        <div class="metric"><span class="lab">False alarms on safe apps</span><span class="val"><span class="us">1/9</span><span class="sep">vs</span><span class="them">6/9</span></span></div>
+        <div class="metric"><span class="lab">Correct overall</span><span class="val"><span class="us">29/30</span><span class="sep">vs</span><span class="them">22/30</span></span></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div>
+      <div class="brand" style="display:flex;align-items:center;gap:9px;font-weight:700">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 1.5 3 4.2v5.1c0 4 2.9 7.2 7 8.7 4.1-1.5 7-4.7 7-8.7V4.2L10 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="m7.2 9.9 2 2 3.6-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Guard Score
+      </div>
+      <p style="margin-top:10px">By Verified Changes — the security verifier for AI-built Supabase apps. Available as an MCP tool, a CLI, a GitHub Action, and an HTTP API.</p>
+    </div>
+    <div class="fl">
+      <a href="#how">How it works</a>
+      <a href="#benchmark">Benchmark</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/.well-known/security.txt">Security</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ---------- static scanner (mirror of web/scan.js, guarded by test/web-scan.js) ---------- */
+const EXPLAIN={anon_read:"Anyone on the internet, without logging in, can read this table.",anon_write:"Anyone on the internet, without logging in, can change or delete rows in this table.",public_bucket:"A storage bucket whose name says it holds private files is public: anyone with a file's URL can download it, whatever the storage policies say.",rls_lockout:"Row level security is on but the table has no policies, so no ordinary user can read or write it — this locks your own app out unless every access goes through the service role."};
+const FIX={no_rls:t=>`Enable row level security and add owner-scoped policies:\n  alter table ${t} enable row level security;\n  create policy "${t}_own" on ${t} for all to authenticated\n    using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));`,allow_all_read:t=>`Replace the always-true read rule with an owner check:\n  using ( user_id = (select auth.uid()) )`,allow_all_write:t=>`Replace the always-true write rule with an owner check:\n  using ( user_id = (select auth.uid()) ) with check ( user_id = (select auth.uid()) )`,public_bucket:b=>`Make the bucket private and serve files through signed URLs:\n  update storage.buckets set public = false where id = '${b}';`,rls_lockout:t=>`Add the policies your app needs, e.g. an owner policy:\n  create policy "${t}_own" on ${t} for all to authenticated using (user_id = (select auth.uid()));`};
+function statements(sql){let s=String(sql||"");s=s.replace(/--[^\n]*/g," ").replace(/\/\*[\s\S]*?\*\//g," ");const out=[];let buf="",i=0,dollar=null,inStr=false;while(i<s.length){const c=s[i];if(dollar){if(s.startsWith(dollar,i)){buf+=dollar;i+=dollar.length;dollar=null;continue}buf+=c;i++;continue}if(inStr){buf+=c;if(c==="'"){if(s[i+1]==="'"){buf+="'";i+=2;continue}inStr=false}i++;continue}if(c==="'"){inStr=true;buf+=c;i++;continue}const dq=/^\$[a-zA-Z_]*\$/.exec(s.slice(i));if(dq){dollar=dq[0];buf+=dollar;i+=dollar.length;continue}if(c===";"){if(buf.trim())out.push(buf.trim());buf="";i++;continue}buf+=c;i++}if(buf.trim())out.push(buf.trim());return out}
+const schemaOf=n=>{const m=/^"?([a-zA-Z_][a-zA-Z0-9_]*)"?\s*\./.exec(String(n||""));return m?m[1].toLowerCase():"public"};
+const norm=n=>String(n||"").replace(/"/g,"").replace(/^public\./i,"").toLowerCase();
+const SENSITIVE_COL=/(^|_)(email|phone|mobile|address|full_name|first_name|last_name|ssn|dob|date_of_birth|national_id|passport|password|password_hash|secret|api_key|access_token|refresh_token|stripe_\w+|card_\w+|iban|token)$/i;
+const PRIVATE_BUCKET=/id_?cards?|docs?|documents?|invoices?|receipts?|private|secure|contracts?|passports?|medical|reports?|backups?|exports?|attachments?|uploads?|files?/i;
+const SERVER_TABLE=/(^|_)(oauth|token|tokens|credential|secret|webhook|stripe|billing|integration|sync|audit|log|logs|event|events|migration|schema_migration|cron|queue|outbox)(_|s|$)/i;
+function staticScan(sql){
+  const stmts=statements(sql);const tables={};const table=n=>(tables[n]||={name:n,cols:new Set(),rls:false,policies:[]});const buckets={};const objectPolicies=[];
+  for(const st of stmts){const low=st.toLowerCase();let m=/^create\s+table\s+(?:if\s+not\s+exists\s+)?([^\s(]+)\s*\(([\s\S]*)\)/i.exec(st);
+    if(m){const name=norm(m[1]);if(schemaOf(m[1])!=="public")continue;const t=table(name);const body=m[2];let depth=0,cur="",cols=[];for(const ch of body){if(ch==="(")depth++;else if(ch===")")depth--;if(ch===","&&depth===0){cols.push(cur);cur=""}else cur+=ch}if(cur.trim())cols.push(cur);for(const c of cols){const cm=/^\s*"?([a-zA-Z_][a-zA-Z0-9_]*)"?\s+/.exec(c);if(!cm)continue;const cn=cm[1].toLowerCase();if(/^(constraint|primary|foreign|unique|check|exclude|like)$/i.test(cn))continue;t.cols.add(cn)}continue}
+    m=/^alter\s+table\s+(?:if\s+exists\s+)?([^\s]+)\s+enable\s+row\s+level\s+security/i.exec(st);if(m){if(schemaOf(m[1])==="public")table(norm(m[1])).rls=true;continue}
+    m=/^create\s+policy\s+("(?:[^"]|"")*"|\S+)\s+on\s+([^\s]+)([\s\S]*)$/i.exec(st);
+    if(m){const on=norm(m[2]);const isStorage=/storage\s*\.\s*objects/i.test(m[2])||on==="objects";if(!isStorage&&schemaOf(m[2])!=="public")continue;const rest=m[3];const cmd=(/\bfor\s+(select|insert|update|delete|all)\b/i.exec(rest)||[,"all"])[1].toLowerCase();const roles=(/\bto\s+([a-z_,\s"]+?)(?=\s+(using|with)\b|$)/i.exec(rest)||[,""])[1].toLowerCase();const using=(/\busing\s*\(([\s\S]*?)\)\s*(with\s+check|$)/i.exec(rest)||[,""])[1];const check=(/\bwith\s+check\s*\(([\s\S]*)\)\s*$/i.exec(rest)||[,""])[1];const pol={cmd,roles,using:using.trim(),check:check.trim(),restrictive:/\bas\s+restrictive\b/i.test(rest)};if(isStorage)objectPolicies.push(pol);else table(on).policies.push(pol);continue}
+    if(/insert\s+into\s+storage\s*\.\s*buckets/i.test(low)){const cm=/\(([^)]*)\)\s*values?\s*([\s\S]*)/i.exec(st);if(cm){const colNames=cm[1].split(",").map(x=>x.trim().replace(/"/g,"").toLowerCase());const pubIdx=colNames.indexOf("public");const tuples=cm[2].match(/\(([^)]*)\)/g)||[];for(const tup of tuples){const vals=tup.slice(1,-1).split(",").map(x=>x.trim());const idIdx=colNames.indexOf("id");const id=idIdx>=0&&vals[idIdx]?vals[idIdx].replace(/^'|'$/g,""):(vals[0]||"").replace(/^'|'$/g,"");const isPublic=pubIdx>=0?/true/i.test(vals[pubIdx]||""):false;if(id)buckets[id]={public:isPublic}}}}
+  }
+  const isTrue=x=>/^\s*\(?\s*true\s*\)?\s*$/i.test(x||"");const anonPol=r=>!r.trim()||/\banon\b/.test(r)||/\bpublic\b/.test(r);
+  const findings=[];const add=(sev,cls,tbl,what,fix)=>findings.push({severity:sev,class:cls,table:tbl,what,fix});const sensitive=t=>[...t.cols].some(c=>SENSITIVE_COL.test(c));
+  for(const t of Object.values(tables)){let anonRead=false,anonWrite=false;
+    for(const p of t.policies){if(p.restrictive||!anonPol(p.roles))continue;if((p.cmd==="select"||p.cmd==="all")&&isTrue(p.using))anonRead=true;if((p.cmd==="update"||p.cmd==="delete"||p.cmd==="all")&&(isTrue(p.using)||isTrue(p.check)))anonWrite=true;if(p.cmd==="insert"&&isTrue(p.check))anonWrite=true}
+    const noRls=!t.rls&&!t.policies.length&&!SERVER_TABLE.test(t.name);
+    if(anonWrite)add("critical","anon_write",t.name,EXPLAIN.anon_write,FIX.allow_all_write(t.name));
+    if(anonRead)sensitive(t)?add("critical","anon_read",t.name,"Anyone, without logging in, can read this table — and it holds personal data (email, phone or similar).",FIX.allow_all_read(t.name)):add("warning","anon_read",t.name,"This table looks readable by anyone without logging in. Fine for a public catalog or leaderboard, a leak otherwise — the full verifier confirms by attacking it.",FIX.allow_all_read(t.name));
+    if(noRls&&!anonWrite&&!anonRead){if(sensitive(t))add("critical","anon_write",t.name,"Row level security is off on this table and it holds personal data, so anyone the database exposes it to can read or change it.",FIX.no_rls(t.name));else add("warning","rls_lockout",t.name,"Row level security is not enabled on this table. If Supabase exposes it to the anon role (the default for public tables), anyone can read and write it — the full verifier confirms.",FIX.no_rls(t.name))}
+    else if(t.rls&&!t.policies.length&&!SERVER_TABLE.test(t.name))add("warning","rls_lockout",t.name,EXPLAIN.rls_lockout,FIX.rls_lockout(t.name));
+  }
+  for(const[id,b]of Object.entries(buckets))if(b.public&&PRIVATE_BUCKET.test(id))add("high","public_bucket",`storage: ${id}`,EXPLAIN.public_bucket,FIX.public_bucket(id));
+  const seen=new Set();const uniq=findings.filter(f=>{const k=f.class+"|"+f.table;if(seen.has(k))return false;seen.add(k);return true});const order={critical:0,high:1,warning:2};uniq.sort((a,b)=>order[a.severity]-order[b.severity]);
+  const crit=uniq.filter(f=>f.severity==="critical"||f.severity==="high").length;const warn=uniq.filter(f=>f.severity==="warning").length;const tableCount=Object.keys(tables).length;
+  let guardScore;if(crit)guardScore=Math.max(12,59-8*(crit-1));else if(warn)guardScore=Math.max(70,79-3*(warn-1));else guardScore=100;
+  return{guardScore,verdict:crit?"unsafe":warn?"review":tableCount?"clear":"empty",tableCount,counts:{critical:uniq.filter(f=>f.severity==="critical").length,high:uniq.filter(f=>f.severity==="high").length,warning:warn},findings:uniq}
+}
+
+/* ---------- Firestore rules scanner (mirror of web/firebase-scan.js, guarded by test/web-firebase-scan.js) ---------- */
+function firestoreScan(rulesText){
+  const text=String(rulesText||"");
+  const SENS=/(^|\/)(users?|profiles?|accounts?|members?|messages?|chats?|conversations?|dms?|emails?|payments?|orders?|invoices?|subscriptions?|billing|private|secrets?|tokens?|notes?|journal|documents?|files?|health|medical)($|s?\/|\/)/i;
+  const OPEN=/^\(?\s*true\s*\)?$/i;
+  const OWNER=/request\.auth\.uid\s*==|==\s*request\.auth\.uid|resource\.data\.\w*(uid|user|owner|author)\w*\s*==\s*request\.auth\.uid/i;
+  const AUTHED=/request\.auth\s*!=\s*null|request\.auth\.uid|request\.auth\s*\.\s*token/;
+  const GATED=/get\s*\(|exists\s*\(|hasrole|has_role|role\s*==|admin|isadmin/i;
+  const FEX={open_write:"Anyone on the internet, without signing in, can create, change, or delete documents here (allow write: if true).",open_read:"Anyone on the internet, without signing in, can read every document here (allow read: if true).",any_signed_in_write:"Any signed-in user can write documents here — the rule checks that someone is logged in, not that the document is theirs, so one user can overwrite another’s."};
+  const FFX={open_write:p=>`Scope writes to the document’s owner:\n  match ${p} {\n    allow write: if request.auth != null && request.auth.uid == resource.data.uid;\n  }`,open_read:p=>`Scope reads to the owner (or a membership check):\n  match ${p} {\n    allow read: if request.auth != null && request.auth.uid == resource.data.uid;\n  }`,any_signed_in_write:p=>`Add an owner check to the write rule:\n  allow write: if request.auth != null && request.auth.uid == resource.data.uid;`};
+  const clean=text.replace(/\/\/[^\n]*/g,"").replace(/\/\*[\s\S]*?\*\//g,"");
+  const blocks=[];const re=/match\s+(\S+)\s+\{/g;let m;
+  while((m=re.exec(clean))){const start=re.lastIndex;const rest=clean.slice(start);const end=rest.search(/\bmatch\b|\}/);const body=rest.slice(0,end<0?rest.length:end);const allows=[...body.matchAll(/allow\s+([a-z,\s]+?)\s*:\s*if\s+([^;]+);/gi)].map(a=>({ops:a[1].replace(/\s/g,"").split(",").filter(Boolean),cond:a[2].trim().replace(/\s+/g," ")}));blocks.push({path:m[1].trim(),allows});}
+  const findings=[];const add=(s,c,p,w,f)=>findings.push({severity:s,class:c,table:p,what:w,fix:f});
+  const total=blocks.reduce((n,b)=>n+b.allows.length,0);
+  for(const b of blocks){for(const{ops,cond}of b.allows){const write=ops.some(o=>/^(write|create|update|delete)$/.test(o));const read=ops.some(o=>/^(read|get|list)$/.test(o));
+    if(OPEN.test(cond)){if(write)add("critical","open_write",b.path,FEX.open_write,FFX.open_write(b.path));if(read)SENS.test(b.path)?add("critical","open_read",b.path,"Anyone, without signing in, can read every document here — and the path looks like personal data.",FFX.open_read(b.path)):add("warning","open_read",b.path,"This path looks readable by anyone without signing in. Fine for public content, a leak otherwise — the full engine confirms by attacking it.",FFX.open_read(b.path));}
+    else if(write&&AUTHED.test(cond)&&!OWNER.test(cond)&&!GATED.test(cond))add("warning","any_signed_in_write",b.path,FEX.any_signed_in_write,FFX.any_signed_in_write(b.path));}}
+  if(/allow\s+read,\s*write\s*:\s*if\s+request\.time\s*<\s*timestamp/i.test(text))add("critical","open_write","/{document=**}","These rules are in test mode — the whole database is open to anyone until a set date.","Replace the test-mode rule with real per-collection owner rules before launch.");
+  if(!blocks.length&&text.trim())add("warning","rules_missing","(rules)","No match blocks were found in these rules. Confirm this is really your firestore.rules file.","Add per-collection rules scoped to request.auth.uid.");
+  const seen=new Set();const uniq=findings.filter(f=>{const k=f.class+"|"+f.table;if(seen.has(k))return false;seen.add(k);return true});const order={critical:0,high:1,warning:2};uniq.sort((a,b)=>order[a.severity]-order[b.severity]);
+  const crit=uniq.filter(f=>f.severity==="critical"||f.severity==="high").length;const warn=uniq.filter(f=>f.severity==="warning").length;
+  let guardScore;if(crit)guardScore=Math.max(12,59-8*(crit-1));else if(warn)guardScore=Math.max(70,79-3*(warn-1));else guardScore=100;
+  return{stack:"firebase",guardScore,verdict:crit?"unsafe":warn?"review":total?"clear":"empty",tableCount:blocks.length,counts:{critical:uniq.filter(f=>f.severity==="critical").length,high:uniq.filter(f=>f.severity==="high").length,warning:warn},findings:uniq};
+}
+
+const DEMO_SUPABASE=`-- JournalAI — AI journaling app, built in an afternoon
+create table public.profiles (
+  id uuid primary key references auth.users,
+  email text,
+  display_name text,
+  plan text default 'free'
+);
+-- (row level security never enabled on profiles)
+
+create table public.entries (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users,
+  title text,
+  body text,
+  created_at timestamptz default now()
+);
+alter table public.entries enable row level security;
+create policy "enable access for all" on public.entries
+  for all using (true) with check (true);
+
+create table public.subscriptions (
+  id uuid primary key,
+  user_id uuid,
+  status text,
+  stripe_customer_id text
+);
+alter table public.subscriptions enable row level security;
+create policy "read subscriptions" on public.subscriptions
+  for select using (true);
+
+insert into storage.buckets (id, name, public)
+  values ('documents', 'documents', true);`;
+
+const DEMO_FIRESTORE=`rules_version = '2';
+// ChatMate — a group chat app, shipped over a weekend
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      // meant to be "only you can edit your profile" — but nobody checked
+      allow read, write: if true;
+    }
+
+    match /messages/{messageId} {
+      allow read: if request.auth != null;
+      // any signed-in user can edit or delete anyone's message
+      allow write: if request.auth != null;
+    }
+
+    match /payments/{paymentId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == resource.data.uid;
+    }
+  }
+}`;
+
+let stack='supabase';
+const STACKS={
+  supabase:{scan:staticScan, demo:DEMO_SUPABASE, name:'Supabase', path:'supabase/migrations/*.sql', ph:'Paste your create table and create policy statements here…', full:true},
+  firebase:{scan:firestoreScan, demo:DEMO_FIRESTORE, name:'Firebase', path:'firestore.rules', ph:'Paste your firestore.rules here…', full:false}
+};
+
+/* ---------- render ---------- */
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const cssVar=s=>s<60?'--crit':s<80?'--warn':'--safe';
+const VERDICT={
+  unsafe:['Leaking','Anyone on the internet can walk through the holes below. Fix these, then run the full verifier to catch what a text scan can’t reach.'],
+  review:['Worth a closer look','Nothing is unmistakably open, but a few rules depend on how your app behaves at runtime. The full verifier settles them by attack.'],
+  clear:['No obvious holes','The schema has no unmistakable leaks. That is not the same as proven safe — run the full verifier to attack it and be sure.'],
+  empty:['Nothing to check yet','Paste your Supabase migration SQL above, or load the example.']
+};
+
+function gauge(score){
+  const R=46, C=2*Math.PI*R, col=`var(${cssVar(score)})`;
+  const off=C*(1-score/100);
+  return `<div class="gauge">
+    <svg width="104" height="104" viewBox="0 0 104 104">
+      <circle cx="52" cy="52" r="${R}" fill="none" stroke="var(--line-2)" stroke-width="6"/>
+      <circle cx="52" cy="52" r="${R}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round"
+        stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/>
+    </svg>
+    <div class="center"><div class="score" style="color:${col}">${score}</div><div class="max">of 100</div></div>
+  </div>`;
+}
+function badgeSVG(score){
+  const c=score<60?'#c23934':score<80?'#9a6b0e':'#177f53';const lw=76,vw=34,h=20;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${lw+vw}" height="${h}" viewBox="0 0 ${lw+vw} ${h}" role="img" aria-label="Guard Score: ${score}">
+  <clipPath id="rb"><rect width="${lw+vw}" height="${h}" rx="4"/></clipPath>
+  <g clip-path="url(#rb)"><rect width="${lw}" height="${h}" fill="#3a3f4b"/><rect x="${lw}" width="${vw}" height="${h}" fill="${c}"/></g>
+  <g fill="#fff" font-family="Verdana,DejaVu Sans,sans-serif" font-size="11" text-anchor="middle">
+    <text x="${lw/2}" y="14">Guard Score</text><text x="${lw+vw/2}" y="14" font-weight="bold">${score}</text></g></svg>`;
+}
+
+function render(sql){
+  const r=STACKS[stack].scan(sql);
+  const el=document.getElementById('result');el.hidden=false;
+  const [vh,vs]=VERDICT[r.verdict]||VERDICT.empty;
+  const chips=[];
+  if(r.counts.critical)chips.push(`<span class="chip c"><b>${r.counts.critical}</b> critical</span>`);
+  if(r.counts.high)chips.push(`<span class="chip h"><b>${r.counts.high}</b> high</span>`);
+  if(r.counts.warning)chips.push(`<span class="chip w"><b>${r.counts.warning}</b> to review</span>`);
+  if(!r.findings.length&&r.tableCount)chips.push(`<span class="chip s">${r.tableCount} tables · no obvious holes</span>`);
+
+  const findings=r.findings.map(f=>`
+    <div class="finding">
+      <div class="sev ${f.severity}">${f.severity}</div>
+      <div class="f-body">
+        <div class="tbl">${esc(f.table)}</div>
+        <div class="what">${esc(f.what)}</div>
+        <details><summary>Show the fix</summary><pre>${esc(f.fix)}</pre></details>
+      </div>
+    </div>`).join('');
+
+  const md=`[![Guard Score](${location.origin}/badge/${r.guardScore}.svg)](${location.origin})`;
+
+  const upsell = STACKS[stack].full ? `
+    <div class="block">
+      <h3>What the full verifier proves that a text scan can’t</h3>
+      <p class="sub">It builds a private copy of your database and attacks it. Only an attack can confirm these:</p>
+      <ul class="adds">
+        <li><span class="mk">✓</span><div>A signed-in user <b>promoting themselves to admin</b> or upgrading their own plan, when a rule trusts a field they control.</div></li>
+        <li><span class="mk">✓</span><div>One customer <b>reading another customer’s data</b> across a tenant boundary that runs through a helper function.</div></li>
+        <li><span class="mk">✓</span><div>A <b>security-definer function or RPC</b> that returns other users’ rows to anyone who calls it.</div></li>
+        <li><span class="mk">✓</span><div>A <b>blind write</b> to rows the attacker can’t even read — then a check that your own users still work.</div></li>
+      </ul>
+      <div class="runline">
+        <a class="primary" href="#how">Run the full verifier</a>
+        <div class="snippet" style="margin-top:0;flex:1;min-width:220px"><code id="cmd">npx verified-changes check ./your-app</code><button class="copy" data-copy="cmd">Copy</button></div>
+      </div>
+    </div>` : `
+    <div class="block">
+      <h3>The full Firebase engine is on the way</h3>
+      <p class="sub">This is the static preview. The full engine builds a private copy of your Firestore database in the emulator and attacks it as a real intruder — the same method that makes the Supabase engine the most accurate tool tested. It proves what a text scan can only guess at:</p>
+      <ul class="adds">
+        <li><span class="mk">✓</span><div>A rule that looks safe but is <b>bypassed through get() / exists()</b> lookups an attacker can satisfy.</div></li>
+        <li><span class="mk">✓</span><div>One user <b>reading or overwriting another user’s documents</b> where the ownership check is subtly wrong.</div></li>
+        <li><span class="mk">✓</span><div>Data reachable through a <b>collection-group query</b> the per-collection rules never anticipated.</div></li>
+        <li><span class="mk">✓</span><div>A <b>public Storage bucket</b> or an open callable function behind the app.</div></li>
+      </ul>
+      <div class="runline">
+        <a class="primary" href="#how">See how the engines work</a>
+        <span class="hint" style="color:var(--muted)">The Supabase engine is live and benchmarked today.</span>
+      </div>
+    </div>`;
+
+  el.innerHTML=`
+    <div class="report">
+      <div class="report-head">
+        ${gauge(r.guardScore)}
+        <div class="verdict">
+          <h2>${vh}</h2>
+          <p>${vs}</p>
+          <div class="chips">${chips.join('')}</div>
+        </div>
+      </div>
+      ${r.findings.length?`<div class="findings">${findings}</div>`:''}
+    </div>
+
+    <div class="block">
+      <h3>Share your Guard Score</h3>
+      <p class="sub">Add the badge to your README or your deployed app — proof you checked, and a prompt for the next builder to check theirs.</p>
+      <div class="share-row">${badgeSVG(r.guardScore)}</div>
+      <div class="snippet"><code id="md">${esc(md)}</code><button class="copy" data-copy="md">Copy</button></div>
+    </div>
+    ${upsell}`;
+
+  el.querySelectorAll('.copy').forEach(b=>b.addEventListener('click',async()=>{
+    const t=document.getElementById(b.dataset.copy).textContent;
+    try{await navigator.clipboard.writeText(t);const o=b.textContent;b.textContent='Copied';setTimeout(()=>b.textContent=o,1400);}
+    catch{const rng=document.createRange();rng.selectNodeContents(document.getElementById(b.dataset.copy));const sel=getSelection();sel.removeAllRanges();sel.addRange(rng);}
+  }));
+}
+
+/* ---------- wiring ---------- */
+const ta=document.getElementById('sql');
+function applyStack(){
+  const c=STACKS[stack];
+  document.getElementById('cpath').textContent=c.path;
+  document.getElementById('stackname').textContent=c.name;
+  ta.placeholder=c.ph;
+  document.querySelectorAll('.stackbtn').forEach(x=>{const on=x.dataset.stack===stack;x.classList.toggle('active',on);x.setAttribute('aria-selected',on);});
+}
+function loadDemo(){ta.value=STACKS[stack].demo;render(ta.value);}
+document.getElementById('scan').addEventListener('click',()=>{render(ta.value);document.getElementById('result').scrollIntoView({behavior:'smooth',block:'nearest'});});
+document.getElementById('demo').addEventListener('click',()=>{loadDemo();document.getElementById('result').scrollIntoView({behavior:'smooth',block:'nearest'});});
+document.getElementById('navscan')?.addEventListener('click',e=>{e.preventDefault();document.getElementById('scanner').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>ta.focus(),350);});
+document.querySelectorAll('.stackbtn').forEach(btn=>btn.addEventListener('click',()=>{stack=btn.dataset.stack;applyStack();loadDemo();}));
+
+const root=document.documentElement;
+try{const saved=localStorage.getItem('gs-theme');if(saved)root.setAttribute('data-theme',saved);}catch{}
+document.getElementById('theme').addEventListener('click',()=>{
+  const cur=root.getAttribute('data-theme');
+  const dark=cur?cur==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+  const next=dark?'light':'dark';root.setAttribute('data-theme',next);
+  try{localStorage.setItem('gs-theme',next);}catch{}
+});
+
+/* open already showing the example — complete at rest */
+applyStack();loadDemo();
+</script>

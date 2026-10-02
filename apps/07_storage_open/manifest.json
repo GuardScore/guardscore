@@ -1,0 +1,1 @@
+{"name":"07_storage_open","expect":{"verdict":"unsafe","classes":["storage_read"]}}

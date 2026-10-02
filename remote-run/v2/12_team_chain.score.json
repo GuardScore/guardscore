@@ -1,0 +1,757 @@
+{
+  "remote": [
+    {
+      "id": "projects.anon.read",
+      "table": "projects",
+      "class": "anon_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "select count(*) as n from public.\"projects\"",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "projects.anon.update",
+      "table": "projects",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "update public.\"projects\" set \"team_id\" = \"team_id\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "projects.anon.delete",
+      "table": "projects",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "delete from public.\"projects\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "projects.cross.read",
+      "table": "projects",
+      "class": "cross_tenant_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "select count(*) as n from public.\"projects\" where \"team_id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "projects.forged_meta.read",
+      "table": "projects",
+      "class": "trusts_user_metadata",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B with self-edited metadata",
+        "sql": "select count(*) as n from public.\"projects\" where \"team_id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_visible": 0
+        }
+      },
+      "dependsOn": {
+        "id": "projects.cross.read",
+        "status": "blocked"
+      }
+    },
+    {
+      "id": "projects.cross.update",
+      "table": "projects",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"projects\" set \"team_id\" = \"team_id\" where \"team_id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "projects.cross.delete",
+      "table": "projects",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"projects\" where \"team_id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "projects.cross.blind_update",
+      "table": "projects",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"projects\" set \"name\" = (jsonb_populate_record(null::public.\"projects\", $1::jsonb)).\"name\"",
+        "observed": {
+          "rows_affected": 1,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "projects.cross.blind_delete",
+      "table": "projects",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"projects\"",
+        "observed": {
+          "rows_affected": 1,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "projects.cross.insert_as_other",
+      "table": "projects",
+      "class": "impersonated_insert",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "insert into public.\"projects\" (\"name\", \"team_id\") select \"name\", \"team_id\" from jsonb_populate_record(null::public.\"projects\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"projects\""
+        }
+      }
+    },
+    {
+      "id": "projects.anon.insert",
+      "table": "projects",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "insert into public.\"projects\" (\"name\", \"team_id\") select \"name\", \"team_id\" from jsonb_populate_record(null::public.\"projects\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"projects\""
+        }
+      }
+    },
+    {
+      "id": "projects.legit.read_own",
+      "table": "projects",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "select count(*) as n from public.\"projects\" where \"team_id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_visible": 1
+        }
+      }
+    },
+    {
+      "id": "projects.legit.insert_own",
+      "table": "projects",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "insert into public.\"projects\" (\"name\", \"team_id\") select \"name\", \"team_id\" from jsonb_populate_record(null::public.\"projects\", $1::jsonb)",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    },
+    {
+      "id": "projects.legit.update_own",
+      "table": "projects",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "update public.\"projects\" set \"team_id\" = \"team_id\" where \"team_id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    },
+    {
+      "id": "tasks.anon.read",
+      "table": "tasks",
+      "class": "anon_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "select count(*) as n from public.\"tasks\"",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "tasks.anon.update",
+      "table": "tasks",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "update public.\"tasks\" set \"project_id\" = \"project_id\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "tasks.anon.delete",
+      "table": "tasks",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "delete from public.\"tasks\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "tasks.cross.read",
+      "table": "tasks",
+      "class": "cross_user_read",
+      "kind": "attack",
+      "status": "leaked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "select count(*) as n from public.\"tasks\" where \"project_id\" = '00000000-0000-4000-8000-f00000000003'",
+        "observed": {
+          "rows_visible": 1
+        }
+      }
+    },
+    {
+      "id": "tasks.cross.update",
+      "table": "tasks",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "leaked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"tasks\" set \"project_id\" = \"project_id\" where \"project_id\" = '00000000-0000-4000-8000-f00000000003'",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    },
+    {
+      "id": "tasks.cross.delete",
+      "table": "tasks",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "leaked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"tasks\" where \"project_id\" = '00000000-0000-4000-8000-f00000000003'",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    },
+    {
+      "id": "tasks.cross.blind_update",
+      "table": "tasks",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "leaked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"tasks\" set \"title\" = (jsonb_populate_record(null::public.\"tasks\", $1::jsonb)).\"title\"",
+        "observed": {
+          "rows_affected": 2,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "tasks.cross.blind_delete",
+      "table": "tasks",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "leaked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"tasks\"",
+        "observed": {
+          "rows_affected": 2,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "tasks.cross.insert_as_other",
+      "table": "tasks",
+      "class": "impersonated_insert",
+      "kind": "attack",
+      "status": "leaked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "insert into public.\"tasks\" (\"done\", \"title\", \"project_id\") select \"done\", \"title\", \"project_id\" from jsonb_populate_record(null::public.\"tasks\", $1::jsonb)",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    },
+    {
+      "id": "tasks.anon.insert",
+      "table": "tasks",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "insert into public.\"tasks\" (\"done\", \"title\", \"project_id\") select \"done\", \"title\", \"project_id\" from jsonb_populate_record(null::public.\"tasks\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"tasks\""
+        }
+      }
+    },
+    {
+      "id": "tasks.legit.read_own",
+      "table": "tasks",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "select count(*) as n from public.\"tasks\" where \"project_id\" = '00000000-0000-4000-8000-f00000000003'",
+        "observed": {
+          "rows_visible": 1
+        }
+      }
+    },
+    {
+      "id": "team_members.anon.read",
+      "table": "team_members",
+      "class": "anon_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "select count(*) as n from public.\"team_members\"",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "team_members.anon.update",
+      "table": "team_members",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "update public.\"team_members\" set \"team_id\" = \"team_id\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "team_members.anon.delete",
+      "table": "team_members",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "delete from public.\"team_members\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "team_members.cross.read",
+      "table": "team_members",
+      "class": "cross_user_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "select count(*) as n from public.\"team_members\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "team_members.forged_meta.read",
+      "table": "team_members",
+      "class": "trusts_user_metadata",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B with self-edited metadata",
+        "sql": "select count(*) as n from public.\"team_members\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 0
+        }
+      },
+      "dependsOn": {
+        "id": "team_members.cross.read",
+        "status": "blocked"
+      }
+    },
+    {
+      "id": "team_members.cross.update",
+      "table": "team_members",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"team_members\" set \"user_id\" = \"user_id\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "team_members.cross.delete",
+      "table": "team_members",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"team_members\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "team_members.cross.blind_update",
+      "table": "team_members",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"team_members\" set \"role\" = (jsonb_populate_record(null::public.\"team_members\", $1::jsonb)).\"role\"",
+        "observed": {
+          "rows_affected": 0,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "team_members.cross.blind_delete",
+      "table": "team_members",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"team_members\"",
+        "observed": {
+          "rows_affected": 0,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "team_members.cross.insert_as_other",
+      "table": "team_members",
+      "class": "impersonated_insert",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "insert into public.\"team_members\" (\"role\", \"team_id\", \"user_id\") select \"role\", \"team_id\", \"user_id\" from jsonb_populate_record(null::public.\"team_members\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"team_members\""
+        }
+      }
+    },
+    {
+      "id": "team_members.anon.insert",
+      "table": "team_members",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "insert into public.\"team_members\" (\"role\", \"team_id\", \"user_id\") select \"role\", \"team_id\", \"user_id\" from jsonb_populate_record(null::public.\"team_members\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"team_members\""
+        }
+      }
+    },
+    {
+      "id": "team_members.self_join_other_tenant",
+      "table": "team_members",
+      "class": "tenant_self_join",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "insert into public.\"team_members\" (\"role\", \"team_id\", \"user_id\") select \"role\", \"team_id\", \"user_id\" from jsonb_populate_record(null::public.\"team_members\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"team_members\""
+        }
+      }
+    },
+    {
+      "id": "team_members.legit.read_own",
+      "table": "team_members",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "select count(*) as n from public.\"team_members\" where \"user_id\" = '00000000-0000-4000-8000-00000000000a'",
+        "observed": {
+          "rows_visible": 1
+        }
+      }
+    },
+    {
+      "id": "teams.anon.read",
+      "table": "teams",
+      "class": "anon_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "select count(*) as n from public.\"teams\"",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "teams.anon.update",
+      "table": "teams",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "update public.\"teams\" set \"name\" = \"name\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "teams.anon.delete",
+      "table": "teams",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "delete from public.\"teams\" where true",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "teams.cross.read",
+      "table": "teams",
+      "class": "cross_tenant_read",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "select count(*) as n from public.\"teams\" where \"id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_visible": 0
+        }
+      }
+    },
+    {
+      "id": "teams.forged_meta.read",
+      "table": "teams",
+      "class": "trusts_user_metadata",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B with self-edited metadata",
+        "sql": "select count(*) as n from public.\"teams\" where \"id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_visible": 0
+        }
+      },
+      "dependsOn": {
+        "id": "teams.cross.read",
+        "status": "blocked"
+      }
+    },
+    {
+      "id": "teams.cross.update",
+      "table": "teams",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"teams\" set \"id\" = \"id\" where \"id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "teams.cross.delete",
+      "table": "teams",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"teams\" where \"id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_affected": 0
+        }
+      }
+    },
+    {
+      "id": "teams.cross.blind_update",
+      "table": "teams",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "update public.\"teams\" set \"name\" = (jsonb_populate_record(null::public.\"teams\", $1::jsonb)).\"name\"",
+        "observed": {
+          "rows_affected": 1,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "teams.cross.blind_delete",
+      "table": "teams",
+      "class": "cross_user_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "user B (another user)",
+        "sql": "delete from public.\"teams\"",
+        "observed": {
+          "rows_affected": 0,
+          "rows_actor_owns": 1
+        }
+      }
+    },
+    {
+      "id": "teams.anon.insert",
+      "table": "teams",
+      "class": "anon_write",
+      "kind": "attack",
+      "status": "blocked",
+      "proof": {
+        "actor": "anonymous visitor",
+        "sql": "insert into public.\"teams\" (\"name\") select \"name\" from jsonb_populate_record(null::public.\"teams\", $1::jsonb)",
+        "observed": {
+          "error": "new row violates row-level security policy for table \"teams\""
+        }
+      }
+    },
+    {
+      "id": "teams.legit.read_own",
+      "table": "teams",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "select count(*) as n from public.\"teams\" where \"id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_visible": 1
+        }
+      }
+    },
+    {
+      "id": "teams.legit.update_own",
+      "table": "teams",
+      "class": "legit",
+      "kind": "legit",
+      "status": "ok",
+      "proof": {
+        "actor": "user A (the owner)",
+        "sql": "update public.\"teams\" set \"id\" = \"id\" where \"id\" = '00000000-0000-4000-8000-0000000000a1'",
+        "observed": {
+          "rows_affected": 1
+        }
+      }
+    }
+  ],
+  "summary": {
+    "verdict": "unsafe",
+    "guardScore": 59,
+    "attacks": {
+      "run": 43,
+      "blocked": 37,
+      "leaked": 6
+    },
+    "legit": {
+      "run": 7,
+      "ok": 7,
+      "broken": 0
+    },
+    "inconclusive": 0,
+    "notTested": []
+  },
+  "localSummary": {
+    "verdict": "unsafe",
+    "guardScore": 59,
+    "attacks": {
+      "run": 43,
+      "blocked": 37,
+      "leaked": 6
+    },
+    "legit": {
+      "run": 7,
+      "ok": 7,
+      "broken": 0
+    },
+    "inconclusive": 0,
+    "notTested": []
+  },
+  "diffs": []
+}

@@ -1,0 +1,5 @@
+{
+  "id": "team_projects",
+  "prompt": "Build a team project tracker on Supabase. Users belong to organizations and see only their organization's projects. Write the database migration. Use public.orgs (id uuid primary key, name text), public.memberships (id uuid default gen_random_uuid(), user_id uuid referencing auth.users, org_id uuid referencing orgs) and public.projects (id uuid default gen_random_uuid(), org_id uuid referencing orgs, name text). Admins add members from a server function, not from the client.",
+  "manifest": { "membership": "memberships", "tables": { "memberships": { "legitOps": ["read"] } } }
+}

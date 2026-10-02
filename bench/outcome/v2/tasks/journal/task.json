@@ -1,0 +1,12 @@
+{
+  "id": "journal",
+  "kind": "single",
+  "steps": [
+    "build me a journaling app, people sign up and write daily entries with a mood rating"
+  ],
+  "manifest": {
+    "sharedTables": [
+      "^(user_)?profiles?$"
+    ]
+  }
+}

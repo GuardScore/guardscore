@@ -1,0 +1,5 @@
+{
+  "id": "file_uploads",
+  "prompt": "Build a private document vault on Supabase. Users upload files to a storage bucket named 'uploads', stored under a folder named after their user id (for example <user-id>/contract.pdf), and only they can see or delete their files. Write the database migration, including the bucket and storage policies.",
+  "manifest": {}
+}

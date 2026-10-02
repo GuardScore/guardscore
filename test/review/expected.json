@@ -1,0 +1,941 @@
+[
+ {
+  "case": "case01",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "note_shares:share_foreign_item",
+   "note_shares:anon_write"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "case02",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "invitations:anon_write"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "case03",
+  "manifest": {
+   "publicTables": [
+    "^products?$",
+    "^product_(images?|variants?|categories)$",
+    "^categor(y|ies)$",
+    "^(product_)?reviews?$"
+   ],
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "products:shared_data_write"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "case04",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "shared_note_details:view_bypass"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "case05",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "case06",
+  "manifest": {
+   "publicTables": [
+    "^products?$",
+    "^product_(images?|variants?|categories)$",
+    "^categor(y|ies)$",
+    "^(product_)?reviews?$"
+   ],
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "products:shared_data_write",
+   "customers:cross_user_read"
+  ],
+  "mustNot": [
+   "orders:cross_user_read",
+   "orders:cross_user_write",
+   "order_items:cross_user_read"
+  ]
+ },
+ {
+  "case": "case07",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "case08",
+  "manifest": {
+   "publicTables": [
+    "^products?$",
+    "^product_(images?|variants?|categories)$",
+    "^categor(y|ies)$",
+    "^(product_)?reviews?$"
+   ],
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "case09",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "case10",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "case11",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "case12",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "case13",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "case14",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "case15",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "case16",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r2a_case01",
+  "manifest": {
+   "publicTables": [
+    "^products?$",
+    "^product_(images?|variants?|categories)$",
+    "^categor(y|ies)$",
+    "^(product_)?reviews?$"
+   ],
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "staff_list_orders:rpc_leak",
+   "staff_update_order_status:rpc_write"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "r2a_case02",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r2a_case03",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r2a_case04",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r2a_case05",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r2a_case06",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r2a_case07",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r2a_case08",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r2b_case01",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "get_shared_note:secret_bypass"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "r2b_case02",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r2b_case03",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r2b_case04",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r2b_case05",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r2b_case06",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r2b_case07",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r2b_case08",
+  "manifest": {
+   "publicTables": [
+    "^products?$",
+    "^product_(images?|variants?|categories)$",
+    "^categor(y|ies)$",
+    "^(product_)?reviews?$"
+   ],
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "products:shared_data_write",
+   "order_history:view_bypass"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "r3a_case01",
+  "manifest": {
+   "publicTables": [
+    "^products?$",
+    "^product_(images?|variants?|categories)$",
+    "^categor(y|ies)$",
+    "^(product_)?reviews?$"
+   ],
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "orders:privileged_tamper"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "r3a_case02",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "invitations:self_grant_admin"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "r3a_case03",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r3a_case04",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r3a_case05",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "habits:anon_read"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "r3a_case06",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r3a_case07",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r3a_case08",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "habit_entries:foreign_parent_write"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "r3b_case01",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r3b_case02",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r3b_case03",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r3b_case04",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r3b_case05",
+  "manifest": {
+   "publicTables": [
+    "^products?$",
+    "^product_(images?|variants?|categories)$",
+    "^categor(y|ies)$",
+    "^(product_)?reviews?$"
+   ],
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "orders:privileged_tamper"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "r3b_case06",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r3b_case07",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r3b_case08",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r4_case01",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r4_case02",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r4_case03",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r4_case04",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r4_case05",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r4_case06",
+  "manifest": {
+   "publicTables": [
+    "^products?$",
+    "^product_(images?|variants?|categories)$",
+    "^categor(y|ies)$",
+    "^(product_)?reviews?$"
+   ],
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "orders:privileged_tamper"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "r4_case07",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r4_case08",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r5a_case01",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r5a_case02",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "notes:token_enumeration"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "r5a_case03",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r5a_case04",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r5a_case05",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r5a_case06",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "get_shared_note:declared_sensitive"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "r5a_case07",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r5a_case08",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r5b_case01",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r5b_case02",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r5b_case03",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r5b_case04",
+  "manifest": {
+   "publicTables": [
+    "^products?$",
+    "^product_(images?|variants?|categories)$",
+    "^categor(y|ies)$",
+    "^(product_)?reviews?$"
+   ],
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "orders:privileged_tamper"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "r5b_case05",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r5b_case06",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r5b_case07",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "r5b_case08",
+  "manifest": {
+   "sharedTables": [
+    "^(user_)?profiles?$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "vc_attach_seen",
+  "manifest": {
+   "sharedTables": [
+    "^streaks$"
+   ]
+  },
+  "verdict": "unsafe",
+  "must": [
+   "checkins:foreign_parent_write"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "vc_account_tenant",
+  "manifest": {},
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "vc_purchase_trigger",
+  "manifest": {
+   "publicTables": [
+    "^products$"
+   ],
+   "sharedTables": [
+    "^product_reviews$"
+   ]
+  },
+  "verdict": "safe",
+  "must": [],
+  "mustNot": []
+ },
+ {
+  "case": "vc_loosened_insert",
+  "manifest": {},
+  "verdict": "unsafe",
+  "must": [
+   "clients:impersonated_insert",
+   "invoices:impersonated_insert"
+  ],
+  "mustNot": []
+ },
+ {
+  "case": "vc_trigger_role_conflict",
+  "manifest": {},
+  "verdict": "breaks_app",
+  "must": [],
+  "mustNot": []
+ }
+]

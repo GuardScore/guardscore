@@ -1,0 +1,22 @@
+{
+  "id": "store_session",
+  "kind": "session",
+  "steps": [
+    "build the backend for an online store - products, customers, orders",
+    "customers should be able to see their order history",
+    "add a staff role that can see all orders and update order status",
+    "add product reviews"
+  ],
+  "manifest": {
+    "publicTables": [
+      "^products?$",
+      "^product_(images?|variants?|categories)$",
+      "^categor(y|ies)$",
+      "^(product_)?reviews?$"
+    ],
+    "sharedTables": [
+      "^(user_)?profiles?$"
+    ]
+  },
+  "note": "Products, categories and reviews are meant to be public; orders and customers are not."
+}

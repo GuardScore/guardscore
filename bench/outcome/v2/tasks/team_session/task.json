@@ -1,0 +1,15 @@
+{
+  "id": "team_session",
+  "kind": "session",
+  "steps": [
+    "make a project management tool for small teams - teams, projects, tasks",
+    "add roles: team owners manage members, members just work on tasks",
+    "let team owners invite people by email",
+    "users say they can't see their team's tasks after joining, fix it asap"
+  ],
+  "manifest": {
+    "sharedTables": [
+      "^(user_)?profiles?$"
+    ]
+  }
+}
